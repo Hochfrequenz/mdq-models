@@ -1,0 +1,115 @@
+[project]
+name = "mdq-models"
+description = "Hand-written data models of the canonical meter-reading schema (Messwert, Zaehlerstand)"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+authors = [{ name = "Hochfrequenz Unternehmensberatung GmbH", email = "info+github@hochfrequenz.de" }]
+keywords = ["meter reading", "energy", "malo", "time series", "pydantic"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
+    "Typing :: Typed",
+]
+dependencies = [
+    "pydantic>=2.11",
+]
+dynamic = ["readme", "version"]
+
+[project.optional-dependencies]
+polars = ["polars>=2.0,<3"]
+
+[project.urls]
+Changelog = "https://github.com/Hochfrequenz/mdq-models/releases"
+Homepage = "https://github.com/Hochfrequenz/mdq-models"
+Repository = "https://github.com/Hochfrequenz/mdq-models"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = ["*.md"]
+
+[tool.ruff.lint]
+select = ["D", "E", "W", "F", "I", "UP", "B", "N", "PL", "RUF"]
+ignore = ["PLR0913", "PLR0917", "PLR0912", "PLR0915", "PLR2004"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"unittests/*" = ["D"]
+
+[tool.mypy]
+disable_error_code = []
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+testpaths = ["unittests"]
+
+[dependency-groups]
+tests = [
+    "pytest==9.1.1",
+    "tzdata>=2025.2",  # zoneinfo data on Windows
+]
+linting = [
+    "ruff==0.17.3",
+    {include-group = "tests"},
+]
+type_check = [
+    "mypy==2.4.0",
+    {include-group = "tests"},
+]
+spell_check = [
+    "codespell==2.4.3",
+]
+coverage = [
+    "coverage==7.17.0",
+    {include-group = "tests"},
+]
+dev = [
+    {include-group = "tests"},
+    {include-group = "linting"},
+    {include-group = "type_check"},
+    {include-group = "spell_check"},
+    {include-group = "coverage"},
+]
+
+[tool.uv]
+default-groups = ["tests"]  # `uv run pytest` works on a fresh clone
+
+[build-system]
+requires = ["hatchling>=1.8.0", "hatch-vcs", "hatch-fancy-pypi-readme"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata.hooks.fancy-pypi-readme]
+content-type = "text/markdown"
+fragments = [{ path = "README.md" }]
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
+# relative links do not work on PyPI
+pattern = '\]\((?!https?://|#)([^)]+)\)'
+replacement = '](https://github.com/Hochfrequenz/mdq-models/blob/main/\1)'
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/mdq_models/_version.py"
+template = '''
+version = "{version}"
+'''
+
+[tool.hatch.build.targets.sdist]
+exclude = ["/unittests"]
+
+[tool.hatch.build.targets.wheel]
+only-include = ["src"]
+sources = ["src"]

@@ -1,0 +1,23 @@
+// Zaehlerstand: a meter reading, the second input of the canonical schema.
+//
+// This proto is the gRPC contract only. The JSON form is produced and read by the hand-written Go and
+// Python models in this repository, never by protojson: protojson would write enum names
+// ("STATUS_VORLAEUFIG") instead of the JSON strings ("vorlaeufig") and would omit unset `optional`
+// fields instead of writing `null`. The JSON rules (strict keys, canonical forms) live in the models.
+syntax = "proto3";
+
+package mdq.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// Zaehlerstand is the reading of one market location (MaLo) at one point in time.
+message Zaehlerstand {
+  // malo is the market location ID: 11 ASCII digits, no leading 0, valid check digit.
+  string malo = 1;
+  // timestamp is a point in time, in UTC, with whole seconds. Unlike Messwert.timestamp it is not
+  // restricted to the quarter-hour raster.
+  google.protobuf.Timestamp timestamp = 2;
+  // value is the reading as a canonical decimal string: shortest form, at most 12 integer digits and
+  // at most 6 decimals, no exponent, no "+", no leading or trailing zeros. Always set.
+  string value = 3;
+}

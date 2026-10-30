@@ -1,0 +1,12 @@
+* text=auto eol=lf
+*.go	text eol=lf
+*.py	text eol=lf
+*.json	text eol=lf
+*.proto	text eol=lf
+*.md	text eol=lf
+*.yml	text eol=lf
+*.golden	text eol=lf
+# the encoding fixtures contain a BOM, UTF-16 and invalid UTF-8: git must not touch their bytes
+testdata/*/invalid/utf8_bom.json	-text
+testdata/*/invalid/utf16_encoded.json	-text
+testdata/*/invalid/invalid_utf8_bytes.json	-text

@@ -1,0 +1,30 @@
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.tox/
+.mypy_cache/
+htmlcov/
+.coverage
+src/mdq_models/_version.py
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Env
+.env
+.venv/
+coverage.out

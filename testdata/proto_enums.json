@@ -1,0 +1,82 @@
+{
+  "Status": {
+    "unspecified": "STATUS_UNSPECIFIED",
+    "values": [
+      {
+        "name": "STATUS_WAHR",
+        "number": 1,
+        "json": "wahr"
+      },
+      {
+        "name": "STATUS_VORLAEUFIG",
+        "number": 2,
+        "json": "vorlaeufig"
+      },
+      {
+        "name": "STATUS_ERSATZWERT",
+        "number": 3,
+        "json": "ersatzwert"
+      },
+      {
+        "name": "STATUS_FEHLEND",
+        "number": 4,
+        "json": "fehlend"
+      }
+    ]
+  },
+  "Herkunft": {
+    "unspecified": "HERKUNFT_UNSPECIFIED",
+    "values": [
+      {
+        "name": "HERKUNFT_FREMD",
+        "number": 1,
+        "json": "fremd"
+      },
+      {
+        "name": "HERKUNFT_MQA",
+        "number": 2,
+        "json": "mqa"
+      }
+    ]
+  },
+  "Profiltyp": {
+    "unspecified": "PROFILTYP_UNSPECIFIED",
+    "values": [
+      {
+        "name": "PROFILTYP_HAUSHALT",
+        "number": 1,
+        "json": "haushalt"
+      },
+      {
+        "name": "PROFILTYP_GEWERBE",
+        "number": 2,
+        "json": "gewerbe"
+      },
+      {
+        "name": "PROFILTYP_INDUSTRIE",
+        "number": 3,
+        "json": "industrie"
+      },
+      {
+        "name": "PROFILTYP_UNBEKANNT",
+        "number": 4,
+        "json": "unbekannt"
+      }
+    ]
+  },
+  "Richtung": {
+    "unspecified": "RICHTUNG_UNSPECIFIED",
+    "values": [
+      {
+        "name": "RICHTUNG_BEZUG",
+        "number": 1,
+        "json": "bezug"
+      },
+      {
+        "name": "RICHTUNG_EINSPEISUNG",
+        "number": 2,
+        "json": "einspeisung"
+      }
+    ]
+  }
+}

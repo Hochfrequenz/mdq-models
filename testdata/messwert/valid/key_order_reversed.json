@@ -1,0 +1,10 @@
+{
+  "richtung": "bezug",
+  "profiltyp": "haushalt",
+  "herkunft": "fremd",
+  "status": "wahr",
+  "value": "1.5",
+  "resolution": "PT15M",
+  "timestamp": "2026-01-15T10:15:00Z",
+  "malo": "51238696781"
+}

@@ -1,0 +1,17 @@
+{
+  "Messwert": {
+    "herkunft": "optional Herkunft = 6",
+    "malo": "string = 1",
+    "profiltyp": "Profiltyp = 7",
+    "resolution": "string = 3",
+    "richtung": "Richtung = 8",
+    "status": "Status = 5",
+    "timestamp": "google.protobuf.Timestamp = 2",
+    "value": "optional string = 4"
+  },
+  "Zaehlerstand": {
+    "malo": "string = 1",
+    "timestamp": "google.protobuf.Timestamp = 2",
+    "value": "string = 3"
+  }
+}

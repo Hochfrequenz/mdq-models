@@ -1,0 +1,39 @@
+// Messwert: one row of the canonical meter-reading schema.
+//
+// This proto is the gRPC contract only. The JSON form is produced and read by the hand-written Go and
+// Python models in this repository, never by protojson: protojson would write enum names
+// ("STATUS_VORLAEUFIG") instead of the JSON strings ("vorlaeufig") and would omit unset `optional`
+// fields instead of writing `null`. The JSON rules (strict keys, canonical forms) live in the models.
+//
+// No `*_UNSPECIFIED` enum value is ever valid in data.
+syntax = "proto3";
+
+package mdq.v1;
+
+import "google/protobuf/timestamp.proto";
+import "mdq/v1/enums.proto";
+
+// Messwert is the quantity of one market location (MaLo) for one quarter hour.
+message Messwert {
+  // malo is the market location ID: 11 ASCII digits, no leading 0, valid check digit.
+  string malo = 1;
+  // timestamp is the START of the quarter hour, in UTC: 00:00 is the first quarter hour of a day and
+  // 23:45 the last. It equals the start of a [from, to) interval. Whole seconds; minute divisible by
+  // 15, second 0.
+  google.protobuf.Timestamp timestamp = 2;
+  // resolution is the raster as an ISO 8601 duration. Only "PT15M" in v1.
+  string resolution = 3;
+  // value is the quantity as a canonical decimal string: shortest form, at most 12 integer digits and
+  // at most 6 decimals, no exponent, no "+", no leading or trailing zeros. Negative values are
+  // allowed. Unset if and only if status is STATUS_FEHLEND.
+  optional string value = 4;
+  // status says how trustworthy the value is. Never STATUS_UNSPECIFIED.
+  Status status = 5;
+  // herkunft is the origin of the value. Unset if and only if status is STATUS_FEHLEND;
+  // STATUS_WAHR requires HERKUNFT_FREMD. Never HERKUNFT_UNSPECIFIED when set.
+  optional Herkunft herkunft = 6;
+  // profiltyp is the load profile kind. Never PROFILTYP_UNSPECIFIED.
+  Profiltyp profiltyp = 7;
+  // richtung is the flow direction. Never RICHTUNG_UNSPECIFIED.
+  Richtung richtung = 8;
+}

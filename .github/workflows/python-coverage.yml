@@ -1,0 +1,23 @@
+name: "Python Coverage"
+
+on:
+  push:
+    branches: [main]
+  pull_request: {}
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.3.2
+        with:
+          python-version: "3.15"
+      - name: Install dependencies
+        run: uv sync --locked --group coverage --extra polars
+      - name: Run Tests and Record Coverage
+        run: |
+          uv run --locked --extra polars coverage run -m pytest unittests
+          uv run --locked --extra polars coverage html --omit 'unittests/*,.venv/*'
+          uv run --locked --extra polars coverage report --fail-under 80 --omit 'unittests/*,.venv/*'

@@ -1,0 +1,142 @@
+[
+  {
+    "status": "wahr",
+    "herkunft": null,
+    "ok": false
+  },
+  {
+    "status": "wahr",
+    "herkunft": "fremd",
+    "ok": true
+  },
+  {
+    "status": "wahr",
+    "herkunft": "mqa",
+    "ok": false
+  },
+  {
+    "status": "vorlaeufig",
+    "herkunft": null,
+    "ok": false
+  },
+  {
+    "status": "vorlaeufig",
+    "herkunft": "fremd",
+    "ok": true
+  },
+  {
+    "status": "vorlaeufig",
+    "herkunft": "mqa",
+    "ok": true
+  },
+  {
+    "status": "ersatzwert",
+    "herkunft": null,
+    "ok": false
+  },
+  {
+    "status": "ersatzwert",
+    "herkunft": "fremd",
+    "ok": true
+  },
+  {
+    "status": "ersatzwert",
+    "herkunft": "mqa",
+    "ok": true
+  },
+  {
+    "status": "fehlend",
+    "herkunft": null,
+    "ok": true
+  },
+  {
+    "status": "fehlend",
+    "herkunft": "fremd",
+    "ok": false
+  },
+  {
+    "status": "fehlend",
+    "herkunft": "mqa",
+    "ok": false
+  },
+  {
+    "status": "wahr",
+    "herkunft": "",
+    "ok": false
+  },
+  {
+    "status": "vorlaeufig",
+    "herkunft": "",
+    "ok": false
+  },
+  {
+    "status": "ersatzwert",
+    "herkunft": "",
+    "ok": false
+  },
+  {
+    "status": "fehlend",
+    "herkunft": "",
+    "ok": false
+  },
+  {
+    "status": "Wahr",
+    "herkunft": null,
+    "ok": false
+  },
+  {
+    "status": "Wahr",
+    "herkunft": "fremd",
+    "ok": false
+  },
+  {
+    "status": "gemessen",
+    "herkunft": null,
+    "ok": false
+  },
+  {
+    "status": "gemessen",
+    "herkunft": "fremd",
+    "ok": false
+  },
+  {
+    "status": "foo",
+    "herkunft": null,
+    "ok": false
+  },
+  {
+    "status": "foo",
+    "herkunft": "fremd",
+    "ok": false
+  },
+  {
+    "status": "",
+    "herkunft": null,
+    "ok": false
+  },
+  {
+    "status": "",
+    "herkunft": "fremd",
+    "ok": false
+  },
+  {
+    "status": "vorlaeufig",
+    "herkunft": "bogus",
+    "ok": false
+  },
+  {
+    "status": "fehlend",
+    "herkunft": "bogus",
+    "ok": false
+  },
+  {
+    "status": "wahr",
+    "herkunft": "bogus",
+    "ok": false
+  },
+  {
+    "status": "vorlaeufig",
+    "herkunft": "FREMD",
+    "ok": false
+  }
+]

@@ -1,0 +1,65 @@
+// The enumerations of the canonical meter-reading schema.
+//
+// This proto is the gRPC contract only. The JSON form of the schema is produced and read by the
+// hand-written Go and Python models in this repository, never by protojson: protojson would write
+// the constant names ("STATUS_VORLAEUFIG") instead of the lower-case JSON strings ("vorlaeufig") and
+// would omit unset `optional` fields instead of writing `null`, so its output would not be the
+// documented JSON. The JSON string of a constant is its name without the prefix, in lower case; the
+// mapping is pinned in testdata/proto_enums.json and checked from both languages.
+//
+// Every `*_UNSPECIFIED` constant is the proto3 zero value and is never valid in data.
+syntax = "proto3";
+
+package mdq.v1;
+
+// Status says how trustworthy a value is (JSON: "wahr", "vorlaeufig", "ersatzwert", "fehlend").
+enum Status {
+  // STATUS_UNSPECIFIED is the proto3 zero value. It is never valid in data.
+  STATUS_UNSPECIFIED = 0;
+  // STATUS_WAHR is a confirmed value (JSON: "wahr"). Its herkunft is always HERKUNFT_FREMD.
+  STATUS_WAHR = 1;
+  // STATUS_VORLAEUFIG is a provisional value that may still be replaced (JSON: "vorlaeufig").
+  STATUS_VORLAEUFIG = 2;
+  // STATUS_ERSATZWERT is a substitute value that was calculated instead of measured (JSON: "ersatzwert").
+  STATUS_ERSATZWERT = 3;
+  // STATUS_FEHLEND means there is no value (JSON: "fehlend"). Value and herkunft are unset.
+  STATUS_FEHLEND = 4;
+}
+
+// Herkunft is the origin of a value (JSON: "fremd", "mqa"). It is unset if and only if the status is
+// STATUS_FEHLEND.
+enum Herkunft {
+  // HERKUNFT_UNSPECIFIED is the proto3 zero value. It is never valid in data.
+  HERKUNFT_UNSPECIFIED = 0;
+  // HERKUNFT_FREMD is a value not formed by the meter data quality agent, for example one delivered from
+  // the source system (JSON: "fremd").
+  HERKUNFT_FREMD = 1;
+  // HERKUNFT_MQA is a value formed by the meter data quality agent (MQA, "Messdatenqualitätsagent"), the
+  // software that forms provisional and substitute values, in an earlier run (JSON: "mqa").
+  HERKUNFT_MQA = 2;
+}
+
+// Profiltyp is the load profile kind of the market location (JSON: "haushalt", "gewerbe",
+// "industrie", "unbekannt").
+enum Profiltyp {
+  // PROFILTYP_UNSPECIFIED is the proto3 zero value. It is never valid in data.
+  PROFILTYP_UNSPECIFIED = 0;
+  // PROFILTYP_HAUSHALT is a household profile (JSON: "haushalt").
+  PROFILTYP_HAUSHALT = 1;
+  // PROFILTYP_GEWERBE is a commercial profile (JSON: "gewerbe").
+  PROFILTYP_GEWERBE = 2;
+  // PROFILTYP_INDUSTRIE is an industrial profile (JSON: "industrie").
+  PROFILTYP_INDUSTRIE = 3;
+  // PROFILTYP_UNBEKANNT means the profile kind is not known (JSON: "unbekannt").
+  PROFILTYP_UNBEKANNT = 4;
+}
+
+// Richtung is the flow direction of the energy (JSON: "bezug", "einspeisung").
+enum Richtung {
+  // RICHTUNG_UNSPECIFIED is the proto3 zero value. It is never valid in data.
+  RICHTUNG_UNSPECIFIED = 0;
+  // RICHTUNG_BEZUG is consumption from the grid (JSON: "bezug").
+  RICHTUNG_BEZUG = 1;
+  // RICHTUNG_EINSPEISUNG is feed-in to the grid (JSON: "einspeisung").
+  RICHTUNG_EINSPEISUNG = 2;
+}

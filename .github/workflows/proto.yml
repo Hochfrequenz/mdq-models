@@ -1,0 +1,63 @@
+name: "Proto"
+
+on:
+  push:
+    branches: [main]
+  pull_request: {}
+
+permissions:
+  contents: read
+
+jobs:
+  buf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # buf breaking compares against the PR base branch in the local clone
+      # `buf build` fails on a module without any .proto file ("had no .proto files"), so the buf
+      # steps are guarded instead of committing a placeholder: the job stays green (and the status
+      # check keeps existing) until the first .proto file lands, and enforces everything afterwards.
+      - name: Detect .proto files
+        id: detect
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          if [ -n "$(find proto -name '*.proto' 2>/dev/null)" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          elif [ -n "$BASE_REF" ] && git ls-tree -r --name-only "origin/$BASE_REF" | grep -q '\.proto$'; then
+            echo "origin/$BASE_REF has .proto files but this PR has none: refusing to skip buf." >&2
+            exit 1
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "No .proto files yet, skipping buf."
+          fi
+      - name: Install Go
+        if: steps.detect.outputs.present == 'true'
+        uses: actions/setup-go@v7
+        with:
+          go-version: "1.27.x"
+      - name: Install buf
+        if: steps.detect.outputs.present == 'true'
+        run: go install github.com/bufbuild/buf/cmd/buf@v1.75.0
+      - name: buf build
+        if: steps.detect.outputs.present == 'true'
+        run: buf build
+      - name: buf lint
+        if: steps.detect.outputs.present == 'true'
+        run: buf lint
+      - name: buf format
+        if: steps.detect.outputs.present == 'true'
+        run: buf format --diff --exit-code
+      # Compare against the local clone (works without network access to the remote). Only on pull
+      # requests, and skipped while the base branch has no .proto files: there is nothing to compare to.
+      - name: buf breaking
+        if: steps.detect.outputs.present == 'true' && github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          if git ls-tree -r --name-only "origin/$BASE_REF" | grep -q '\.proto$'; then
+            buf breaking --against ".git#branch=origin/$BASE_REF"
+          else
+            echo "origin/$BASE_REF has no .proto files yet, skipping buf breaking"
+          fi

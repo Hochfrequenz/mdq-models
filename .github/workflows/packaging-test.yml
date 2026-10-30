@@ -1,0 +1,40 @@
+name: "Packaging Test"
+
+on:
+  push:
+    branches: [main]
+  pull_request: {}
+
+jobs:
+  check_packaging:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.3.2
+        with:
+          python-version: "3.15"
+      - name: Build distributions
+        run: uv build
+      - name: Check distributions
+        run: uv publish --dry-run
+      - name: Check that the wheel has no top-level modules
+        run: |
+          unzip -Z1 dist/*.whl
+          if unzip -Z1 dist/*.whl | grep -E '\.py$' | grep -v '^mdq_models/'; then
+            echo "the wheel contains .py files outside mdq_models/" >&2
+            exit 1
+          fi
+      - name: Install the wheel into a fresh venv and import it
+        run: |
+          uv venv "$RUNNER_TEMP/wheel-venv"
+          uv pip install --python "$RUNNER_TEMP/wheel-venv" dist/*.whl
+          cd "$RUNNER_TEMP"
+          "$RUNNER_TEMP/wheel-venv/bin/python" -c "import mdq_models as m; assert m.__version__; print(m.__version__)"
+      - name: Install the wheel with the polars extra and import the Polars module
+        run: |
+          uv venv "$RUNNER_TEMP/wheel-venv-polars"
+          wheel=$(ls dist/*.whl)
+          uv pip install --python "$RUNNER_TEMP/wheel-venv-polars" "${wheel}[polars]"
+          cd "$RUNNER_TEMP"
+          "$RUNNER_TEMP/wheel-venv-polars/bin/python" -c "import mdq_models.polars as p; print(len(p.CANONICAL_COLUMNS))"
