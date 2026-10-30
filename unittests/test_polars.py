@@ -19,7 +19,7 @@ LIMIT = Decimal(10) ** 9
 
 def _row(value: str | None = "1.5", **changes: str | None) -> Messwert:
     fields: dict[str, str | None] = {
-        "malo": "51238696781",
+        "malo": "68283561554",
         "timestamp": "2026-01-15T10:15:00Z",
         "resolution": "PT15M",
         "value": value,
@@ -183,7 +183,7 @@ def test_from_frame_checks_the_dtype_of_every_column() -> None:
     frame = mp.to_frame([_row()])
     bad = {
         "value": [pl.lit("1.5"), pl.lit(True), pl.lit(Decimal("1.500000")).cast(pl.Decimal(20, 6)), pl.lit(1)],
-        "malo": [pl.lit(51238696781)],
+        "malo": [pl.lit(68283561554)],
         "status": [pl.lit(1)],
         "timestamp": [pl.lit("2026-01-15T10:15:00Z"), pl.col("timestamp").dt.cast_time_unit("ns")],
     }

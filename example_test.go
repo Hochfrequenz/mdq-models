@@ -16,7 +16,7 @@ import (
 
 // ExampleParseMesswert is the Go snippet of the README; TestReadmeGoSnippet keeps the two identical.
 func ExampleParseMesswert() {
-	raw := []byte(`{"malo":"51238696781","timestamp":"2026-03-29T00:45:00Z","resolution":"PT15M",` +
+	raw := []byte(`{"malo":"68283561554","timestamp":"2026-03-29T00:45:00Z","resolution":"PT15M",` +
 		`"value":"1.5","status":"wahr","herkunft":"fremd","profiltyp":"haushalt","richtung":"bezug"}`)
 	m, err := mdq.ParseMesswert(raw) // every failure is a *mdq.ValidationError
 	if err != nil {
@@ -31,7 +31,7 @@ func ExampleParseMesswert() {
 	}
 	mqa := mdq.HerkunftMqa
 	built := mdq.Messwert{
-		Malo:       "51238696781",
+		Malo:       "68283561554",
 		Timestamp:  time.Date(2026, 3, 29, 3, 0, 0, 0, time.FixedZone("CEST", 2*3600)), // written as UTC
 		Resolution: mdq.PT15M,
 		Value:      &value,
@@ -47,12 +47,12 @@ func ExampleParseMesswert() {
 	fmt.Println(string(out))
 
 	// Reading is strict: duplicate (and unknown) keys are rejected.
-	_, err = mdq.ParseMesswert([]byte(`{"malo":"51238696781","malo":"51238696781"}`))
+	_, err = mdq.ParseMesswert([]byte(`{"malo":"68283561554","malo":"68283561554"}`))
 	var invalid *mdq.ValidationError
 	fmt.Println(errors.As(err, &invalid))
 	// Output:
-	// 51238696781 2026-03-29T00:45:00Z 1.5 wahr
-	// {"malo":"51238696781","timestamp":"2026-03-29T01:00:00Z","resolution":"PT15M","value":"2.5","status":"ersatzwert","herkunft":"mqa","profiltyp":"haushalt","richtung":"bezug"}
+	// 68283561554 2026-03-29T00:45:00Z 1.5 wahr
+	// {"malo":"68283561554","timestamp":"2026-03-29T01:00:00Z","resolution":"PT15M","value":"2.5","status":"ersatzwert","herkunft":"mqa","profiltyp":"haushalt","richtung":"bezug"}
 	// true
 }
 

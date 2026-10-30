@@ -1,27 +1,28 @@
 {
   "valid": [
     "51238696781",
-    "10000000009",
-    "99999999995",
-    "23456789010",
-    "40000000072",
-    "65432109870"
+    "68283561554",
+    "52291008369",
+    "80167773998",
+    "79774733982",
+    "18772821068",
+    "31343701849"
   ],
   "invalid": [
     {
-      "id": "23456789011",
+      "id": "68283561555",
       "reason": "wrong check digit"
     },
     {
-      "id": "23456789019",
+      "id": "68283561553",
       "reason": "wrong check digit (off by one the other way)"
     },
     {
-      "id": "5123869678",
+      "id": "6828356155",
       "reason": "10 digits"
     },
     {
-      "id": "512386967810",
+      "id": "682835615540",
       "reason": "12 digits"
     },
     {
@@ -29,35 +30,35 @@
       "reason": "empty"
     },
     {
-      "id": "01234567890",
+      "id": "09774733989",
       "reason": "leading 0 (check digit is correct)"
     },
     {
-      "id": "00000000000",
+      "id": "08772821069",
       "reason": "leading 0 (check digit is correct)"
     },
     {
-      "id": "５１２３８６９６７８１",
+      "id": "６８２８３５６１５５４",
       "reason": "full-width digits"
     },
     {
-      "id": "٥١٢٣٨٦٩٦٧٨١",
+      "id": "٦٨٢٨٣٥٦١٥٥٤",
       "reason": "Arabic-Indic digits"
     },
     {
-      "id": "5123869678A",
+      "id": "6828356155A",
       "reason": "letter instead of a digit"
     },
     {
-      "id": " 51238696781",
+      "id": " 68283561554",
       "reason": "leading space"
     },
     {
-      "id": "51238696781\n",
+      "id": "68283561554\n",
       "reason": "trailing newline"
     },
     {
-      "id": "5123869-781",
+      "id": "6828356-554",
       "reason": "hyphen"
     }
   ],
@@ -67,36 +68,32 @@
       "check_digit": 1
     },
     {
-      "first_ten": "1000000000",
+      "first_ten": "6828356155",
+      "check_digit": 4
+    },
+    {
+      "first_ten": "5229100836",
       "check_digit": 9
     },
     {
-      "first_ten": "9999999999",
-      "check_digit": 5
+      "first_ten": "8016777399",
+      "check_digit": 8
     },
     {
-      "first_ten": "2345678901",
-      "check_digit": 0
-    },
-    {
-      "first_ten": "4000000007",
+      "first_ten": "7977473398",
       "check_digit": 2
     },
     {
-      "first_ten": "6543210987",
+      "first_ten": "2369712414",
       "check_digit": 0
     },
     {
-      "first_ten": "1234567890",
-      "check_digit": 5
+      "first_ten": "1253939103",
+      "check_digit": 2
     },
     {
-      "first_ten": "9000000000",
-      "check_digit": 1
-    },
-    {
-      "first_ten": "1111111111",
-      "check_digit": 5
+      "first_ten": "3073852805",
+      "check_digit": 8
     }
   ],
   "check_digit_invalid_input": [
@@ -105,19 +102,19 @@
       "reason": "empty"
     },
     {
-      "first_ten": "123456789",
+      "first_ten": "682835615",
       "reason": "9 digits"
     },
     {
-      "first_ten": "51238696781",
+      "first_ten": "68283561554",
       "reason": "11 digits"
     },
     {
-      "first_ten": "512386967A",
+      "first_ten": "682835615A",
       "reason": "letter"
     },
     {
-      "first_ten": "５１２３８６９６７８",
+      "first_ten": "６８２８３５６１５５",
       "reason": "full-width digits"
     }
   ]

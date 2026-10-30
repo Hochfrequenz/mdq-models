@@ -231,12 +231,12 @@ def test_non_object_top_levels_are_rejected_by_the_reference_validator() -> None
 @pytest.mark.parametrize(
     ("data", "ok"),
     [
-        ({"malo": "51238696781", "timestamp": "2026-01-15T10:17:23Z", "value": "0.000001"}, True),
-        ({"malo": "51238696781", "timestamp": "2026-01-15T10:17:23Z", "value": "0.0000001"}, False),
-        ({"malo": "51238696781", "timestamp": "2026-01-15T10:17:23Z", "value": "1.10"}, False),
-        ({"malo": "51238696781", "timestamp": "1900-02-29T00:00:00Z", "value": "1"}, False),
-        ({"malo": "51238696781", "timestamp": "2000-02-29T00:00:00Z", "value": "1"}, True),
-        ({"malo": "51238696781", "timestamp": "2026-01-15T10:17:23Z", "value": "-0"}, False),
+        ({"malo": "68283561554", "timestamp": "2026-01-15T10:17:23Z", "value": "0.000001"}, True),
+        ({"malo": "68283561554", "timestamp": "2026-01-15T10:17:23Z", "value": "0.0000001"}, False),
+        ({"malo": "68283561554", "timestamp": "2026-01-15T10:17:23Z", "value": "1.10"}, False),
+        ({"malo": "68283561554", "timestamp": "1900-02-29T00:00:00Z", "value": "1"}, False),
+        ({"malo": "68283561554", "timestamp": "2000-02-29T00:00:00Z", "value": "1"}, True),
+        ({"malo": "68283561554", "timestamp": "2026-01-15T10:17:23Z", "value": "-0"}, False),
     ],
 )
 def test_reference_validator_sanity(data: dict[str, Any], ok: bool) -> None:
@@ -245,7 +245,7 @@ def test_reference_validator_sanity(data: dict[str, Any], ok: bool) -> None:
 
 def test_malo_ids_agree_with_check_digit() -> None:
     cases = _load("malo_ids.json")
-    assert "51238696781" in cases["valid"]
+    assert "68283561554" in cases["valid"]
     for malo in cases["valid"]:
         assert is_valid_malo(malo), malo
     assert cases["invalid"]

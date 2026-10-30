@@ -1,8 +1,10 @@
 # Shared contract fixtures
 
 Go (`fixtures_test.go`) and Python (`unittests/test_fixtures.py`) read the same files. The rules they
-encode are in section 0 of `docs/superpowers/plans/2026-10-30-v1-models.md`. All MaLo IDs are
-synthetic.
+encode are in section 0 of `docs/superpowers/plans/2026-10-30-v1-models.md`. MaLo IDs are random
+ones from the Hochfrequenz ID generator (`https://markt.lokations.id/json`, valid check digit), so they
+look like real IDs. Invalid IDs are derived from them. The one exception is `51238696781`, the BDEW
+example ID from the MaLo-ID application guide; it is kept in `malo_ids.json` as a check-digit reference.
 
 ## `messwert/` and `zaehlerstand/`
 

@@ -176,7 +176,7 @@ func ptr[T any](v T) *T { return &v }
 
 func validMesswert() mdq.Messwert {
 	return mdq.Messwert{
-		Malo:       "51238696781",
+		Malo:       "68283561554",
 		Timestamp:  time.Date(2026, 1, 15, 10, 15, 0, 0, time.UTC),
 		Resolution: mdq.PT15M,
 		Value:      ptr(mdq.Decimal("1.5")),
@@ -195,7 +195,7 @@ func TestMesswertValidateInCode(t *testing.T) {
 		mutate func(*mdq.Messwert)
 		field  string
 	}{
-		"bad malo":          {func(m *mdq.Messwert) { m.Malo = "51238696782" }, "malo"},
+		"bad malo":          {func(m *mdq.Messwert) { m.Malo = "68283561555" }, "malo"},
 		"zero time":         {func(m *mdq.Messwert) { m.Timestamp = time.Time{} }, "timestamp"},
 		"off raster":        {func(m *mdq.Messwert) { m.Timestamp = m.Timestamp.Add(7 * time.Minute) }, "timestamp"},
 		"sub second":        {func(m *mdq.Messwert) { m.Timestamp = m.Timestamp.Add(time.Nanosecond) }, "timestamp"},
@@ -239,7 +239,7 @@ func TestMesswertValidateInCode(t *testing.T) {
 		m.Status, m.Value, m.Herkunft = mdq.StatusFehlend, nil, nil
 		out, err := json.Marshal(m)
 		require.NoError(t, err)
-		assert.Equal(t, `{"malo":"51238696781","timestamp":"2026-01-15T10:15:00Z","resolution":"PT15M","value":null,"status":"fehlend","herkunft":null,"profiltyp":"haushalt","richtung":"bezug"}`, string(out))
+		assert.Equal(t, `{"malo":"68283561554","timestamp":"2026-01-15T10:15:00Z","resolution":"PT15M","value":null,"status":"fehlend","herkunft":null,"profiltyp":"haushalt","richtung":"bezug"}`, string(out))
 	})
 	t.Run("non-UTC is normalised to UTC", func(t *testing.T) {
 		m := validMesswert()
@@ -264,14 +264,14 @@ func TestMesswertValidateInCode(t *testing.T) {
 
 func TestZaehlerstandValidateInCode(t *testing.T) {
 	valid := mdq.Zaehlerstand{
-		Malo:      "51238696781",
+		Malo:      "68283561554",
 		Timestamp: time.Date(2026, 1, 15, 10, 17, 23, 0, time.UTC),
 		Value:     "12345.678",
 	}
 	require.NoError(t, valid.Validate())
 	out, err := json.Marshal(valid)
 	require.NoError(t, err)
-	assert.Equal(t, `{"malo":"51238696781","timestamp":"2026-01-15T10:17:23Z","value":"12345.678"}`, string(out))
+	assert.Equal(t, `{"malo":"68283561554","timestamp":"2026-01-15T10:17:23Z","value":"12345.678"}`, string(out))
 
 	tests := map[string]struct {
 		mutate func(*mdq.Zaehlerstand)
@@ -351,9 +351,9 @@ func TestEnumJSON(t *testing.T) {
 
 func TestParsingAcceptsNothingBeyondOneObject(t *testing.T) {
 	var z mdq.Zaehlerstand
-	assert.Error(t, json.Unmarshal([]byte(`{"malo":"51238696781","timestamp":"2026-01-15T10:17:23Z","value":"1"} {}`), &z))
-	assert.Error(t, json.Unmarshal([]byte(`{"malo":"51238696781","timestamp":"2026-01-15T10:17:23Z","value":"1",}`), &z))
-	assert.Error(t, z.UnmarshalJSON([]byte(`{"malo":"51238696781","timestamp":"2026-01-15T10:17:23Z","value":"1"} x`)))
+	assert.Error(t, json.Unmarshal([]byte(`{"malo":"68283561554","timestamp":"2026-01-15T10:17:23Z","value":"1"} {}`), &z))
+	assert.Error(t, json.Unmarshal([]byte(`{"malo":"68283561554","timestamp":"2026-01-15T10:17:23Z","value":"1",}`), &z))
+	assert.Error(t, z.UnmarshalJSON([]byte(`{"malo":"68283561554","timestamp":"2026-01-15T10:17:23Z","value":"1"} x`)))
 }
 
 func TestNewDecimalNormalisesLikePython(t *testing.T) {
@@ -396,7 +396,7 @@ func TestParseFunctionsReturnValidationErrors(t *testing.T) {
 		require.NoError(t, p([]byte(good[k])), k)
 		for name, in := range map[string]string{
 			"null": "null", "array": "[]", "string": `"x"`, "number": "1", "empty": "", "whitespace": " \n",
-			"syntax error": `{"malo": `, "unclosed": `{"malo":"51238696781"`, "garbage": `{x}`,
+			"syntax error": `{"malo": `, "unclosed": `{"malo":"68283561554"`, "garbage": `{x}`,
 			"trailing data": good[k] + " {}", "trailing garbage": good[k] + " x", "trailing comma": strings.Replace(good[k], "}", ",}", 1),
 			"bom": "\xef\xbb\xbf" + good[k], "invalid utf8": "\xff", "utf16": "\xff\xfe{\x00}\x00",
 		} {
