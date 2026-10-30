@@ -54,7 +54,7 @@ def _shared(name: str) -> Any:
 
 def _valid_messwert(**overrides: Any) -> dict[str, Any]:
     data: dict[str, Any] = {
-        "malo": "51238696781",
+        "malo": "68283561554",
         "timestamp": "2026-01-15T10:15:00Z",
         "resolution": "PT15M",
         "value": "1.5",
@@ -68,7 +68,7 @@ def _valid_messwert(**overrides: Any) -> dict[str, Any]:
 
 
 def _valid_zaehlerstand(**overrides: Any) -> dict[str, Any]:
-    data: dict[str, Any] = {"malo": "51238696781", "timestamp": "2026-01-15T10:17:23Z", "value": "1.5"}
+    data: dict[str, Any] = {"malo": "68283561554", "timestamp": "2026-01-15T10:17:23Z", "value": "1.5"}
     data.update(overrides)
     return data
 
@@ -111,13 +111,13 @@ def test_invalid_fixture_is_rejected_from_a_python_dict_too(path: Path) -> None:
 
 def test_duplicate_keys_are_rejected_at_every_nesting_level() -> None:
     with pytest.raises(ValidationError, match="duplicate"):
-        Messwert.model_validate_json(json.dumps(_valid_messwert()).replace('"PT15M"', '"PT15M", "malo": "51238696781"'))
+        Messwert.model_validate_json(json.dumps(_valid_messwert()).replace('"PT15M"', '"PT15M", "malo": "68283561554"'))
     with pytest.raises(ValidationError, match="duplicate"):
         Zaehlerstand.model_validate_json('{"x": {"a": 1, "a": 2}}')
 
 
 def test_duplicate_keys_are_rejected_even_if_the_values_are_equal() -> None:
-    raw = '{"malo":"51238696781","malo":"51238696781","timestamp":"2026-01-15T10:17:23Z","value":"1"}'
+    raw = '{"malo":"68283561554","malo":"68283561554","timestamp":"2026-01-15T10:17:23Z","value":"1"}'
     with pytest.raises(ValidationError, match="duplicate"):
         Zaehlerstand.model_validate_json(raw)
 
@@ -126,7 +126,7 @@ def test_non_utf8_bytes_and_nan_literals_are_rejected_as_value_errors() -> None:
     with pytest.raises(ValueError):
         Zaehlerstand.model_validate_json(b"\xff")
     with pytest.raises(ValueError):
-        Zaehlerstand.model_validate_json('{"malo":"51238696781","timestamp":"2026-01-15T10:17:23Z","value":NaN}')
+        Zaehlerstand.model_validate_json('{"malo":"68283561554","timestamp":"2026-01-15T10:17:23Z","value":NaN}')
 
 
 # --- Decimal ----------------------------------------------------------------------------------------------------
@@ -148,7 +148,7 @@ def test_non_utf8_bytes_and_nan_literals_are_rejected_as_value_errors() -> None:
     ],
 )
 def test_decimal_built_in_code_is_normalised(given: Decimal, written: str) -> None:
-    z = Zaehlerstand(malo="51238696781", timestamp=datetime(2026, 1, 1, tzinfo=UTC), value=given)
+    z = Zaehlerstand(malo="68283561554", timestamp=datetime(2026, 1, 1, tzinfo=UTC), value=given)
     assert json.loads(z.model_dump_json())["value"] == written
     assert z.value == given
 
@@ -157,14 +157,14 @@ def test_decimal_is_not_rounded_to_the_context_precision() -> None:
     long = Decimal("999999999999.999999")  # 18 significant digits; exact under a small context too
     with localcontext() as ctx:
         ctx.prec = 5
-        z = Zaehlerstand(malo="51238696781", timestamp=datetime(2026, 1, 1, tzinfo=UTC), value=long)
+        z = Zaehlerstand(malo="68283561554", timestamp=datetime(2026, 1, 1, tzinfo=UTC), value=long)
         assert json.loads(z.model_dump_json())["value"] == "999999999999.999999"
 
 
 @pytest.mark.parametrize("bad", [Decimal("1E+12"), Decimal("1000000000000"), Decimal("-1000000000000.5")])
 def test_decimal_with_more_than_12_integer_digits_is_rejected(bad: Decimal) -> None:
     with pytest.raises(ValidationError):
-        Zaehlerstand(malo="51238696781", timestamp=datetime(2026, 1, 1, tzinfo=UTC), value=bad)
+        Zaehlerstand(malo="68283561554", timestamp=datetime(2026, 1, 1, tzinfo=UTC), value=bad)
     with pytest.raises(ValidationError):
         Zaehlerstand.model_validate(_valid_zaehlerstand(value=format(bad, "f")))
 
@@ -176,7 +176,7 @@ def test_decimal_with_more_than_12_integer_digits_is_rejected(bad: Decimal) -> N
 )  # fmt: skip
 def test_decimal_built_in_code_is_rejected(bad: Any) -> None:
     with pytest.raises(ValidationError):
-        Zaehlerstand(malo="51238696781", timestamp=datetime(2026, 1, 1, tzinfo=UTC), value=bad)
+        Zaehlerstand(malo="68283561554", timestamp=datetime(2026, 1, 1, tzinfo=UTC), value=bad)
 
 
 @pytest.mark.parametrize(
@@ -234,7 +234,7 @@ def test_zaehlerstand_accepts_any_whole_second_but_not_sub_seconds() -> None:
 
 def test_building_in_code_with_enums_and_decimals() -> None:
     m = Messwert(
-        malo="51238696781",
+        malo="68283561554",
         timestamp=datetime(2026, 1, 15, 10, 15, tzinfo=UTC),
         resolution="PT15M",
         value=Decimal("1.50"),
@@ -244,7 +244,7 @@ def test_building_in_code_with_enums_and_decimals() -> None:
         richtung=Richtung.EINSPEISUNG,
     )
     assert m.model_dump_json() == (
-        '{"malo":"51238696781","timestamp":"2026-01-15T10:15:00Z","resolution":"PT15M","value":"1.5",'
+        '{"malo":"68283561554","timestamp":"2026-01-15T10:15:00Z","resolution":"PT15M","value":"1.5",'
         '"status":"vorlaeufig","herkunft":"mqa","profiltyp":"gewerbe","richtung":"einspeisung"}'
     )
 
@@ -268,8 +268,8 @@ def test_fehlend_is_written_with_explicit_nulls() -> None:
         {"resolution": "PT5M"},
         {"unknown": 1},
         {"profiltyp": 1},
-        {"malo": 51238696781},
-        {"malo": "51238696782"},
+        {"malo": 68283561554},
+        {"malo": "68283561555"},
     ],
 )
 def test_messwert_rules_hold_when_built_in_code(overrides: dict[str, Any]) -> None:
@@ -290,7 +290,7 @@ def test_every_messwert_key_is_required_even_if_nullable(key: str) -> None:
 def test_models_are_frozen() -> None:
     m = Messwert.model_validate(_valid_messwert())
     with pytest.raises(ValidationError):
-        m.malo = "10000000009"  # type: ignore[misc]
+        m.malo = "52291008369"  # type: ignore[misc]
     assert hash(m) == hash(Messwert.model_validate(_valid_messwert()))
 
 
@@ -323,9 +323,9 @@ def test_malo_ids_file() -> None:
 
 
 def test_malo_id_with_trailing_newline_is_invalid() -> None:
-    assert not is_valid_malo_id("51238696781\n")  # `$` would match before the newline; fullmatch does not
+    assert not is_valid_malo_id("68283561554\n")  # `$` would match before the newline; fullmatch does not
     with pytest.raises(ValueError):
-        malo_check_digit("5123869678\n")
+        malo_check_digit("6828356155\n")
 
 
 def test_herkunft_status_file() -> None:
@@ -354,7 +354,7 @@ def test_importing_the_models_does_not_import_polars() -> None:
         json.dumps(_valid_zaehlerstand()).encode("utf-16"),  # json.loads would accept these
         json.dumps(_valid_zaehlerstand()).encode("utf-16-le"),
         json.dumps(_valid_zaehlerstand()).encode("utf-32"),
-        b'{"malo":"51238696781","timestamp":"2026-01-15T10:17:23Z","value":"1\xff"}',  # invalid UTF-8
+        b'{"malo":"68283561554","timestamp":"2026-01-15T10:17:23Z","value":"1\xff"}',  # invalid UTF-8
     ],
 )
 def test_only_utf8_without_bom_is_accepted(raw: bytes | str) -> None:
@@ -363,14 +363,14 @@ def test_only_utf8_without_bom_is_accepted(raw: bytes | str) -> None:
 
 
 def test_huge_json_number_is_rejected_because_value_must_be_a_string() -> None:
-    raw = '{"malo":"51238696781","timestamp":"2026-01-15T10:17:23Z","value":1e1000}'
+    raw = '{"malo":"68283561554","timestamp":"2026-01-15T10:17:23Z","value":1e1000}'
     with pytest.raises(ValidationError) as info:
         Zaehlerstand.model_validate_json(raw)
     assert info.value.errors()[0]["loc"] == ("value",)
 
 
 def test_huge_json_integer_is_rejected() -> None:
-    raw = f'{{"malo":"51238696781","timestamp":"2026-01-15T10:17:23Z","value":{"1" * 5000}}}'
+    raw = f'{{"malo":"68283561554","timestamp":"2026-01-15T10:17:23Z","value":{"1" * 5000}}}'
     with pytest.raises(ValidationError):  # pydantic's own parser refuses it before field validation
         Zaehlerstand.model_validate_json(raw)
 
@@ -382,7 +382,7 @@ def _error_type(raw: str | bytes, model: type[BaseModel] = Zaehlerstand) -> str:
 
 
 def test_every_parse_failure_is_a_pydantic_validation_error() -> None:
-    ok = '"malo":"51238696781","timestamp":"2026-01-15T10:17:23Z","value":"1"'
+    ok = '"malo":"68283561554","timestamp":"2026-01-15T10:17:23Z","value":"1"'
     assert _error_type(f'{{{ok},"value":"1"}}') == "duplicate_key"
     assert _error_type("{") == "json_invalid"
     assert _error_type("") == "json_invalid"
@@ -401,7 +401,7 @@ def test_deeply_nested_document_is_a_validation_error_not_a_recursion_error() ->
 
 
 def test_check_json_guards_other_entry_points() -> None:
-    raw = '{"malo":"51238696781","malo":"51238696781","timestamp":"2026-01-15T10:17:23Z","value":"1"}'
+    raw = '{"malo":"68283561554","malo":"68283561554","timestamp":"2026-01-15T10:17:23Z","value":"1"}'
     TypeAdapter(Zaehlerstand).validate_json(raw)  # the documented limit: pydantic keeps the last duplicate
     with pytest.raises(ValidationError, match="duplicate"):
         check_json(raw)

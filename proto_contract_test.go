@@ -228,7 +228,7 @@ func jsonKeys(t *testing.T, v any) []string {
 
 func TestProtoMessageFieldsEqualGoFields(t *testing.T) {
 	zaehlerstand := mdq.Zaehlerstand{
-		Malo:      "51238696781",
+		Malo:      "68283561554",
 		Timestamp: time.Date(2026, 1, 15, 10, 15, 1, 0, time.UTC),
 		Value:     mdq.Decimal("1.5"),
 	}

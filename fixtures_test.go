@@ -344,7 +344,7 @@ func fixtureMesswertErrors(m map[string]any) []string {
 
 func TestReferenceValidatorSanity(t *testing.T) {
 	zs := func(ts, value string) any {
-		return map[string]any{"malo": "51238696781", "timestamp": ts, "value": value}
+		return map[string]any{"malo": "68283561554", "timestamp": ts, "value": value}
 	}
 	assert.Empty(t, fixtureErrors("zaehlerstand", zs("2026-01-15T10:17:23Z", "0.000001")))
 	assert.NotEmpty(t, fixtureErrors("zaehlerstand", zs("2026-01-15T10:17:23Z", "0.0000001")))
@@ -446,6 +446,7 @@ func TestMaLoIDsFixtureAgreesWithCheckDigit(t *testing.T) {
 	require.NoError(t, json.Unmarshal(fixtureDuplicateFree(t, "malo_ids.json"), &cases))
 	require.NotEmpty(t, cases.Valid)
 	require.NotEmpty(t, cases.Invalid)
+	// 51238696781 is the BDEW example ID from the MaLo-ID application guide (check-digit reference).
 	assert.Contains(t, cases.Valid, "51238696781")
 	for _, id := range cases.Valid {
 		assert.True(t, fixtureIsValidMaLo(id), id)

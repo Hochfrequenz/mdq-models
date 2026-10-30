@@ -62,7 +62,7 @@ Read untrusted bytes with `ParseMesswert` / `ParseZaehlerstand`: every failure i
 `*Messwert` nil on a top-level `null`.
 
 ```go
-raw := []byte(`{"malo":"51238696781","timestamp":"2026-03-29T00:45:00Z","resolution":"PT15M",` +
+raw := []byte(`{"malo":"68283561554","timestamp":"2026-03-29T00:45:00Z","resolution":"PT15M",` +
 	`"value":"1.5","status":"wahr","herkunft":"fremd","profiltyp":"haushalt","richtung":"bezug"}`)
 m, err := mdq.ParseMesswert(raw) // every failure is a *mdq.ValidationError
 if err != nil {
@@ -77,7 +77,7 @@ if err != nil {
 }
 mqa := mdq.HerkunftMqa
 built := mdq.Messwert{
-	Malo:       "51238696781",
+	Malo:       "68283561554",
 	Timestamp:  time.Date(2026, 3, 29, 3, 0, 0, 0, time.FixedZone("CEST", 2*3600)), // written as UTC
 	Resolution: mdq.PT15M,
 	Value:      &value,
@@ -93,12 +93,12 @@ if err != nil {
 fmt.Println(string(out))
 
 // Reading is strict: duplicate (and unknown) keys are rejected.
-_, err = mdq.ParseMesswert([]byte(`{"malo":"51238696781","malo":"51238696781"}`))
+_, err = mdq.ParseMesswert([]byte(`{"malo":"68283561554","malo":"68283561554"}`))
 var invalid *mdq.ValidationError
 fmt.Println(errors.As(err, &invalid))
 // Output:
-// 51238696781 2026-03-29T00:45:00Z 1.5 wahr
-// {"malo":"51238696781","timestamp":"2026-03-29T01:00:00Z","resolution":"PT15M","value":"2.5","status":"ersatzwert","herkunft":"mqa","profiltyp":"haushalt","richtung":"bezug"}
+// 68283561554 2026-03-29T00:45:00Z 1.5 wahr
+// {"malo":"68283561554","timestamp":"2026-03-29T01:00:00Z","resolution":"PT15M","value":"2.5","status":"ersatzwert","herkunft":"mqa","profiltyp":"haushalt","richtung":"bezug"}
 // true
 ```
 
@@ -118,15 +118,15 @@ from pydantic import ValidationError
 from mdq_models import Herkunft, Messwert, Profiltyp, Richtung, Status
 
 raw = (
-    '{"malo":"51238696781","timestamp":"2026-03-29T00:45:00Z","resolution":"PT15M",'
+    '{"malo":"68283561554","timestamp":"2026-03-29T00:45:00Z","resolution":"PT15M",'
     '"value":"1.5","status":"wahr","herkunft":"fremd","profiltyp":"haushalt","richtung":"bezug"}'
 )
 m = Messwert.model_validate_json(raw)  # rejects duplicate and unknown keys
-print(m.malo, m.timestamp.isoformat(), m.value, m.status.value)  # 51238696781 2026-03-29T00:45:00+00:00 1.5 wahr
+print(m.malo, m.timestamp.isoformat(), m.value, m.status.value)  # 68283561554 2026-03-29T00:45:00+00:00 1.5 wahr
 
 # Build a row in code. Trailing zeros are dropped: Decimal("2.50") is written as "2.5".
 built = Messwert(
-    malo="51238696781",
+    malo="68283561554",
     timestamp=datetime(2026, 3, 29, 3, 0, tzinfo=timezone(timedelta(hours=2))),  # written as UTC
     resolution="PT15M",
     value=Decimal("2.50"),
@@ -140,7 +140,7 @@ print(built.model_dump_json())  # the same bytes the Go models write
 # Reading is strict: duplicate keys are rejected. Only Messwert.model_validate_json checks this by itself; for
 # TypeAdapter and nested models call check_json(raw) on the raw document first.
 try:
-    Messwert.model_validate_json('{"malo":"51238696781","malo":"51238696781"}')
+    Messwert.model_validate_json('{"malo":"68283561554","malo":"68283561554"}')
 except ValidationError:
     print("rejected")
 ```

@@ -16,9 +16,9 @@ def test_readme_python_snippets_run(capsys: pytest.CaptureFixture[str]) -> None:
     namespace: dict[str, object] = {}  # shared: the Polars snippet continues the first one
     exec(compile(blocks[0][1], "<README.md python>", "exec"), namespace)
     printed = capsys.readouterr().out.splitlines()
-    assert printed[0] == "51238696781 2026-03-29T00:45:00+00:00 1.5 wahr"
+    assert printed[0] == "68283561554 2026-03-29T00:45:00+00:00 1.5 wahr"
     assert printed[1] == (
-        '{"malo":"51238696781","timestamp":"2026-03-29T01:00:00Z","resolution":"PT15M","value":"2.5",'
+        '{"malo":"68283561554","timestamp":"2026-03-29T01:00:00Z","resolution":"PT15M","value":"2.5",'
         '"status":"ersatzwert","herkunft":"mqa","profiltyp":"haushalt","richtung":"bezug"}'
     )
     assert printed[2] == "rejected"
