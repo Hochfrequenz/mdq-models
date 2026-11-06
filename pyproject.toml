@@ -56,7 +56,7 @@ testpaths = ["unittests"]
 
 [dependency-groups]
 tests = [
-    "pytest==9.1.1",
+    "pytest==9.2.0",
     "tzdata>=2025.2",  # zoneinfo data on Windows
 ]
 linting = [
