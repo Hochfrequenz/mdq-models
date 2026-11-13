@@ -60,7 +60,7 @@ tests = [
     "tzdata>=2025.2",  # zoneinfo data on Windows
 ]
 linting = [
-    "ruff==0.17.3",
+    "ruff==0.17.4",
     {include-group = "tests"},
 ]
 type_check = [
