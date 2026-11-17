@@ -74,7 +74,9 @@ def test_quelle_valid(quelle: str) -> None:
     assert Einflusswert.model_validate(_valid(quelle=quelle)).quelle == quelle
 
 
-@pytest.mark.parametrize("quelle", ["", "dwd: 01993", "dwd:01993 ", "dwd:München", "x" * 65, "dwd:01993\n", 1993])
+@pytest.mark.parametrize(
+    "quelle", ["", "dwd: 01993", "dwd:01993 ", "dwd:München", "x" * 65, "dwd:01993\n", 1993, b"dwd:01993"]
+)
 def test_quelle_invalid(quelle: Any) -> None:
     with pytest.raises(ValidationError):
         Einflusswert.model_validate(_valid(quelle=quelle))

@@ -78,6 +78,10 @@ CASES = [
         lambda: _frame().with_columns(pl.col("timestamp").cast(pl.Datetime("ns", BERLIN))), "timestamp", id="ts-ns"
     ),
     pytest.param(lambda: _frame(quelle=["dwd:01993", None]), "quelle", id="null-quelle"),
+    pytest.param(lambda: _frame().with_columns(pl.lit(None).alias("quelle")), "quelle", id="null-dtype-quelle"),
+    pytest.param(
+        lambda: _frame().with_columns(pl.col("timestamp").dt.offset_by("1us")), "timestamp", id="ts-microsecond"
+    ),
     pytest.param(lambda: _frame(malo=["68283561555", "68283561555"]), "malo", id="bad-malo"),
     pytest.param(lambda: _frame(groesse=["cloud_cover", "temperatur"]), "groesse", id="bad-groesse"),
     pytest.param(lambda: _frame(resolution=["PT30M", "PT30M"]), "resolution", id="bad-resolution"),

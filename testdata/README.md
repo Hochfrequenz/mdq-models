@@ -21,7 +21,7 @@ One JSON document per file.
 
 `einflusswert/` follows the same rules. Its `timestamp` is the start of the period and must be on the
 raster of its `resolution` (`PT1H`: full hour, `PT15M`: quarter hour). `value` is always nullable:
-`null` is a missing value (null), `"0"` is the value 0 (`globalstrahlung_value_zero.json`,
+`null` is a missing value, `"0"` is the value 0 (`globalstrahlung_value_zero.json`,
 `value_null.json`).
 
 ## `invalid_reasons.json`

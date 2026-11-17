@@ -312,7 +312,7 @@ def pruefe_einfluss_frame(df: pl.DataFrame) -> None:
     minute = utc.dt.minute()
     off_raster = (
         (utc.dt.second() != 0)
-        | (utc.dt.microsecond() % 1_000_000 != 0)
+        | (utc.dt.microsecond() != 0)
         | ((resolution == "PT15M") & (minute % 15 != 0))
         | ((resolution == "PT1H") & (minute != 0))
     )

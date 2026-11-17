@@ -30,8 +30,9 @@ var (
 	fixtureMaLoRe      = regexp.MustCompile(`^[1-9][0-9]{10}$`)
 	fixtureTimestampRe = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$`)
 	// plan 0.3: shortest canonical form, at most 12 integer digits, at most 6 decimal places (negative zero is checked separately).
-	fixtureQuelleRe  = regexp.MustCompile(`^[!-~]{1,64}$`)
 	fixtureDecimalRe = regexp.MustCompile(`^-?(0|[1-9][0-9]{0,11})(\.[0-9]{0,5}[1-9])?$`)
+	// quelle: 1 to 64 printable ASCII characters without spaces.
+	fixtureQuelleRe = regexp.MustCompile(`^[!-~]{1,64}$`)
 )
 
 var fixtureEnums = map[string][]string{
@@ -302,7 +303,7 @@ func fixtureErrors(kind string, doc any) []string {
 	return errs
 }
 
-func fixtureTimestampErrors(kind string, v any, resolution ...any) []string {
+func fixtureTimestampErrors(kind string, v, resolution any) []string {
 	ts, ok := v.(string)
 	if !ok || !fixtureTimestampRe.MatchString(ts) {
 		return []string{"timestamp shape"}
@@ -320,7 +321,7 @@ func fixtureTimestampErrors(kind string, v any, resolution ...any) []string {
 	}
 	if kind == "einflusswert" {
 		// PT1H: full hour; otherwise (PT15M or a broken resolution, which is reported separately): 15-minute raster
-		if resolution[0] == "PT1H" {
+		if resolution == "PT1H" {
 			if parsed.Minute() != 0 || parsed.Second() != 0 {
 				errs = append(errs, "timestamp is off the hourly raster")
 			}

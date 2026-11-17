@@ -39,10 +39,10 @@ invalid fixture, so Go and Python agree on the contract by construction.
 | `malo` | `^[1-9][0-9]{10}$` (ASCII digits only) with a valid BDEW check digit. |
 | `timestamp` | RFC 3339, upper-case `T`, offset exactly `Z`, whole seconds, years 1900-9999, ASCII digits only. For `Messwert` it is the **start of the quarter hour** (`00:00` is the first of a day, `23:45` the last; it equals the start of a `[from, to)` interval) and must be on the raster (minute divisible by 15, second 0). For `Zaehlerstand` it is a point in time with any whole second. Built in code, a timestamp in any time zone is accepted and written in UTC; a naive timestamp is rejected. |
 | `resolution` | `Messwert`: only `"PT15M"` in v1. `Einflusswert`: `"PT1H"` or `"PT15M"`. |
-| `groesse` | `Einflusswert` only: `temperatur` (degrees Celsius) or `globalstrahlung` (mean global irradiance over the period, W/m²). Case-sensitive. |
+| `groesse` | `Einflusswert` only: `temperatur` (air temperature 2 m above ground, mean or representative value of the period, degrees Celsius) or `globalstrahlung` (mean irradiance over the period, W/m²). Case-sensitive. |
 | `quelle` | `Einflusswert` only: where the value comes from, 1 to 64 printable ASCII characters without spaces, for example `dwd:01993`. |
 | `Einflusswert` raster | `timestamp` is the start of the period `[timestamp, timestamp + resolution)`. For `PT1H` it is on the full hour, for `PT15M` on the quarter hour. |
-| `Einflusswert` `value` | A decimal string as for `Messwert`, or `null` for a missing value (null). `"0"` is the value 0, not a missing value. There is no sign rule: a temperature below zero is a normal value. |
+| `Einflusswert` `value` | A decimal string as for `Messwert`, or `null` for a missing value. `"0"` is the value 0, not a missing value. There is no sign rule: a temperature below zero is a normal value. |
 | `value` | A decimal **string** in its shortest canonical form (`"160"`, `"0.022"`, `"-3.5"`), never a JSON number. At most 12 integer digits and at most 6 decimals (counted after stripping trailing zeros). No exponent, no plus sign, no leading zeros, no trailing zeros after the point (`"1.0"` is rejected), no negative zero, no separators. Negative values are allowed. Producers that compute in floating point must round to 6 decimals first: `"0.1234567"` is rejected, not rounded. |
 | `status` | `wahr`, `vorlaeufig`, `ersatzwert`, `fehlend`. Case-sensitive; the retired `gemessen` is rejected. |
 | `herkunft` | `fremd`, `mqa`. `null` **iff** `status` is `fehlend`; `wahr` requires `fremd`. |
@@ -63,7 +63,7 @@ Python 3.11 or newer; `mdq_models` itself depends only on pydantic and never imp
 
 ## Go
 
-Read untrusted bytes with `ParseMesswert` / `ParseZaehlerstand`: every failure is a
+Read untrusted bytes with `ParseMesswert` / `ParseZaehlerstand` / `ParseEinflusswert`: every failure is a
 `*ValidationError`. Plain `json.Unmarshal` reports syntax errors as `*json.SyntaxError` and leaves a
 `*Messwert` nil on a top-level `null`.
 
@@ -235,6 +235,9 @@ rejected for the wrong reason.
 Rules for everyone who maps [Bright Sky](https://brightsky.dev) responses (hourly DWD weather data) to
 `Einflusswert`. The model only knows "the period starting at `timestamp`"; what a source timestamp means
 is decided by the mapping.
+
+Request with Bright Sky's default `units=dwd` (degrees Celsius, kWh/m²). With `units=si` (K, J/m²) the rules
+below do not apply as written.
 
 1. **Time reference.** Convert every Bright Sky timestamp T to UTC first, then shift. Never calculate in
    local time.
