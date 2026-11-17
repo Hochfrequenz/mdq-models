@@ -1,16 +1,19 @@
 """Tests of the Einfluss table schema and ``pruefe_einfluss_frame``."""
 
+import importlib
 from collections.abc import Callable
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
+from typing import Any
 from zoneinfo import ZoneInfo
 
-import polars as pl
 import pytest
 
-import mdq_models.polars as mp
 from mdq_models import EinflussResolution, Einflusswert, Groesse
+
+pl = pytest.importorskip("polars")
+mp = importlib.import_module("mdq_models.polars")
 
 MALO = "68283561554"
 BERLIN = "Europe/Berlin"
@@ -20,7 +23,7 @@ def _ts(year: int, month: int, day: int, hour: int, minute: int = 0) -> datetime
     return datetime(year, month, day, hour, minute, tzinfo=UTC)
 
 
-def _frame(**columns: object) -> pl.DataFrame:
+def _frame(**columns: object) -> Any:
     data: dict[str, object] = {
         "malo": [MALO, MALO],
         "timestamp": [_ts(2026, 1, 1, 10), _ts(2026, 1, 1, 11)],
@@ -106,7 +109,7 @@ CASES = [
 
 
 @pytest.mark.parametrize(("build", "column"), CASES)
-def test_pruefe_rejects(build: Callable[[], pl.DataFrame], column: str) -> None:
+def test_pruefe_rejects(build: Callable[[], Any], column: str) -> None:
     with pytest.raises(ValueError, match=column):
         mp.pruefe_einfluss_frame(build())
 
@@ -131,7 +134,7 @@ def test_pruefe_rejects_seconds() -> None:
 
 def test_pruefe_rejects_lazyframe() -> None:
     with pytest.raises(TypeError):
-        mp.pruefe_einfluss_frame(_frame().lazy())  # type: ignore[arg-type]
+        mp.pruefe_einfluss_frame(_frame().lazy())
 
 
 FIXTURES = sorted((Path(__file__).parent.parent / "testdata" / "einflusswert" / "valid").glob("*.json"))
@@ -249,6 +252,6 @@ def test_to_frame_keeps_input_order() -> None:
 
 def test_from_frame_rejects_non_dataframe_and_invalid() -> None:
     with pytest.raises(TypeError):
-        mp.einfluss_from_frame(_frame().lazy())  # type: ignore[arg-type]
+        mp.einfluss_from_frame(_frame().lazy())
     with pytest.raises(ValueError, match="duplicate"):
         mp.einfluss_from_frame(_frame(timestamp=[_ts(2026, 1, 1, 10)] * 2))
