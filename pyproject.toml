@@ -1,6 +1,6 @@
 [project]
 name = "mdq-models"
-description = "Hand-written data models of the canonical meter-reading schema (Messwert, Zaehlerstand)"
+description = "Hand-written data models of the canonical meter-reading schema (Messwert, Zaehlerstand, Einflusswert)"
 license = { text = "MIT" }
 requires-python = ">=3.11"
 authors = [{ name = "Hochfrequenz Unternehmensberatung GmbH", email = "info+github@hochfrequenz.de" }]
