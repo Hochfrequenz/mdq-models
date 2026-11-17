@@ -1,7 +1,10 @@
 """Tests of the Einfluss table schema and ``pruefe_einfluss_frame``."""
 
 from collections.abc import Callable
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime, timedelta
+from decimal import Decimal
+from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import polars as pl
 import pytest
@@ -125,3 +128,123 @@ def test_pruefe_rejects_seconds() -> None:
 def test_pruefe_rejects_lazyframe() -> None:
     with pytest.raises(TypeError):
         mp.pruefe_einfluss_frame(_frame().lazy())  # type: ignore[arg-type]
+
+
+FIXTURES = sorted((Path(__file__).parent.parent / "testdata" / "einflusswert" / "valid").glob("*.json"))
+
+
+def _einfluss(**fields: object) -> Einflusswert:
+    data: dict[str, object] = {
+        "malo": MALO,
+        "timestamp": _ts(2026, 1, 15, 10),
+        "resolution": "PT1H",
+        "groesse": "temperatur",
+        "value": "1.5",
+        "quelle": "dwd:01993",
+    }
+    data.update(fields)
+    return Einflusswert.model_validate(data)
+
+
+@pytest.mark.parametrize("path", FIXTURES, ids=lambda path: path.stem)
+def test_round_trip_over_valid_fixtures(path: Path) -> None:
+    # One frame per fixture: the fixtures share keys (and mix PT1H with PT15M), so together they are no valid table.
+    rows = [Einflusswert.model_validate_json(path.read_text(encoding="utf-8"))]
+    assert mp.einfluss_from_frame(mp.einfluss_to_frame(rows)) == rows
+
+
+def _berlin_day_utc(day: str, step: timedelta) -> list[datetime]:
+    start = datetime.fromisoformat(day).replace(tzinfo=ZoneInfo(BERLIN))
+    end = (start + timedelta(days=1)).replace(hour=0)  # next Berlin midnight (wall clock arithmetic)
+    start_utc, end_utc = start.astimezone(UTC), end.astimezone(UTC)
+    stamps = []
+    current = start_utc
+    while current < end_utc:
+        stamps.append(current)
+        current += step
+    return stamps
+
+
+def _whole_day(day: str, resolution: str, step: timedelta, expected: int) -> None:
+    stamps = _berlin_day_utc(day, step)
+    assert len(stamps) == expected
+    rows = [
+        _einfluss(timestamp=ts, resolution=resolution, groesse=g.value, value=str(i))
+        for g in Groesse
+        for i, ts in enumerate(stamps)
+    ]
+    frame = mp.einfluss_to_frame(rows)
+    assert frame.height == expected * len(Groesse)
+    for g in Groesse:
+        assert frame.filter(pl.col("groesse") == g.value).height == expected
+    assert frame["timestamp"].dt.date().unique().to_list() == [date.fromisoformat(day)]
+    assert frame.schema == mp.EINFLUSS_DTYPES
+    if day == "2026-10-25":
+        hits = frame.filter(
+            (pl.col("groesse") == "temperatur")
+            & (pl.col("timestamp").dt.hour() == 2)
+            & (pl.col("timestamp").dt.minute() == 0)
+        )
+        assert sorted(hits["timestamp"].dt.convert_time_zone("UTC").dt.hour().to_list()) == [0, 1]
+    assert mp.einfluss_from_frame(frame) == rows
+
+
+@pytest.mark.parametrize(("day", "expected"), [("2026-03-29", 23), ("2026-10-25", 25)])
+def test_whole_dst_day_hourly(day: str, expected: int) -> None:
+    _whole_day(day, "PT1H", timedelta(hours=1), expected)
+
+
+@pytest.mark.parametrize(("day", "expected"), [("2026-03-29", 92), ("2026-10-25", 100)])
+def test_whole_dst_day_quarter_hourly(day: str, expected: int) -> None:
+    _whole_day(day, "PT15M", timedelta(minutes=15), expected)
+
+
+def test_null_and_zero_survive() -> None:
+    rows = [_einfluss(value=None), _einfluss(timestamp=_ts(2026, 1, 15, 11), value=Decimal("0"))]
+    frame = mp.einfluss_to_frame(rows)
+    assert frame["value"].to_list() == [None, 0.0]
+    back = mp.einfluss_from_frame(frame)
+    assert back[0].value is None
+    assert back[1].value == Decimal("0")
+    assert '"value":"0"' in back[1].model_dump_json()
+
+
+def test_to_frame_bound() -> None:
+    with pytest.raises(ValueError, match="10"):
+        mp.einfluss_to_frame([_einfluss(value=Decimal("1000000000"))])
+    rows = [_einfluss(value=Decimal("999999999.999999"))]
+    assert mp.einfluss_from_frame(mp.einfluss_to_frame(rows)) == rows
+
+
+def test_to_frame_rejects_duplicates() -> None:
+    with pytest.raises(ValueError, match="duplicate"):
+        mp.einfluss_to_frame([_einfluss(), _einfluss()])
+
+
+def test_to_frame_rejects_mixed_resolution() -> None:
+    with pytest.raises(ValueError, match="resolution"):
+        mp.einfluss_to_frame([_einfluss(), _einfluss(timestamp=_ts(2026, 1, 15, 11), resolution="PT15M")])
+
+
+def test_empty() -> None:
+    frame = mp.einfluss_to_frame([])
+    assert frame.schema == mp.EINFLUSS_DTYPES
+    assert frame.height == 0
+    assert mp.einfluss_from_frame(frame) == []
+
+
+def test_to_frame_accepts_an_iterator() -> None:
+    rows = (_einfluss(timestamp=_ts(2026, 1, 15, h)) for h in (10, 11))
+    assert mp.einfluss_to_frame(rows).height == 2
+
+
+def test_to_frame_keeps_input_order() -> None:
+    rows = [_einfluss(timestamp=_ts(2026, 1, 15, h)) for h in (12, 10, 11)]
+    assert mp.einfluss_from_frame(mp.einfluss_to_frame(rows)) == rows
+
+
+def test_from_frame_rejects_non_dataframe_and_invalid() -> None:
+    with pytest.raises(TypeError):
+        mp.einfluss_from_frame(_frame().lazy())  # type: ignore[arg-type]
+    with pytest.raises(ValueError, match="duplicate"):
+        mp.einfluss_from_frame(_frame(timestamp=[_ts(2026, 1, 1, 10)] * 2))

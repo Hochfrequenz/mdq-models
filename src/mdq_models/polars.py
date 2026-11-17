@@ -9,7 +9,8 @@ enums and the MaLo helpers (re-exported from :mod:`mdq_models`).
 
 A second table, the Einfluss table (influence values such as temperature), has six columns: ``malo``, ``timestamp``,
 ``resolution``, ``groesse``, ``value`` and ``quelle``. It keeps its ``resolution`` column (PT1H or PT15M).
-:func:`pruefe_einfluss_frame` validates it in a vectorised way; there is no row-wise conversion.
+:func:`pruefe_einfluss_frame` validates it in a vectorised way; :func:`einfluss_to_frame` and
+:func:`einfluss_from_frame` convert from and to ``Einflusswert`` rows.
 
 Timestamps are ``Europe/Berlin`` in the table on purpose: consumers do local calendar logic (weekdays, days).
 UTC is only the wire format of :class:`~mdq_models.Messwert`; :func:`to_frame` and :func:`from_frame` convert.
@@ -29,7 +30,7 @@ except ImportError as exc:
         "mdq_models.polars needs the optional dependency polars; install it with: pip install 'mdq-models[polars]'"
     ) from exc
 
-from mdq_models.einflusswert import QUELLE_PATTERN
+from mdq_models.einflusswert import QUELLE_PATTERN, Einflusswert
 from mdq_models.enums import EinflussResolution, Groesse, Herkunft, Profiltyp, Richtung, Status
 from mdq_models.malo import herkunft_passt_zu_status, is_valid_malo_id, malo_check_digit
 from mdq_models.messwert import Messwert
@@ -67,6 +68,8 @@ __all__ = [
     "Profiltyp",
     "Richtung",
     "Status",
+    "einfluss_from_frame",
+    "einfluss_to_frame",
     "from_frame",
     "herkunft_passt_zu_status",
     "is_valid_malo_id",
@@ -387,6 +390,59 @@ def from_frame(df: pl.DataFrame) -> list[Messwert]:
             herkunft=row[COL_HERKUNFT],
             profiltyp=row[COL_PROFILTYP],
             richtung=row[COL_RICHTUNG],
+        )
+        for row in table.iter_rows(named=True)
+    ]
+
+
+def einfluss_to_frame(werte: Iterable[Einflusswert]) -> pl.DataFrame:
+    """Convert ``Einflusswert`` rows into the Einfluss table (six columns, :data:`EINFLUSS_DTYPES`).
+
+    The input order is kept and the timestamp is converted from UTC to ``Europe/Berlin``. The result is checked with
+    :func:`pruefe_einfluss_frame`, so duplicates and mixed resolutions show up when the table is built.
+
+    Raises:
+        ValueError: if a value has ``|value| >= 10^9`` (Float64 could not hold it exactly), or the rows form no valid
+            table (duplicate ``(malo, groesse, timestamp)``, more than one resolution for one ``(malo, groesse)``).
+    """
+    rows = list(werte)  # an iterator would be used up by the check below and leave the table empty
+    for row in rows:
+        if row.value is not None and row.value.copy_abs() >= MAX_FLOAT_VALUE:
+            raise ValueError(f"{row.malo} {row.timestamp}: |value| {row.value} is not below 10^9, Float64 is inexact")
+    data: dict[str, Any] = {
+        COL_MALO: [row.malo for row in rows],
+        COL_TIMESTAMP: pl.Series(COL_TIMESTAMP, [row.timestamp for row in rows], dtype=pl.Datetime("us", "UTC")),
+        COL_RESOLUTION: [row.resolution.value for row in rows],
+        COL_GROESSE: [row.groesse.value for row in rows],
+        COL_VALUE: [None if row.value is None else float(row.value) for row in rows],
+        COL_QUELLE: [row.quelle for row in rows],
+    }
+    frame = pl.DataFrame(data, schema_overrides=EINFLUSS_DTYPES, schema=list(EINFLUSS_COLUMNS))
+    frame = frame.with_columns(pl.col(COL_TIMESTAMP).dt.convert_time_zone(BERLIN_TZ))
+    pruefe_einfluss_frame(frame)
+    return frame
+
+
+def einfluss_from_frame(df: pl.DataFrame) -> list[Einflusswert]:
+    """Convert an Einfluss table back into validated ``Einflusswert`` rows.
+
+    The frame is validated with :func:`pruefe_einfluss_frame` first; timestamps are converted to UTC. A float
+    ``value`` is converted through its shortest representation (6 decimals, half-even); null stays ``None``.
+
+    Raises:
+        TypeError: if ``df`` is not a ``DataFrame``.
+        ValueError: if the table is invalid (see :func:`pruefe_einfluss_frame`).
+    """
+    pruefe_einfluss_frame(df)  # raises TypeError for a non-DataFrame
+    table = df.with_columns(pl.col(COL_TIMESTAMP).dt.convert_time_zone("UTC"))
+    return [
+        Einflusswert(
+            malo=row[COL_MALO],
+            timestamp=row[COL_TIMESTAMP],
+            resolution=row[COL_RESOLUTION],
+            groesse=row[COL_GROESSE],
+            value=None if row[COL_VALUE] is None else _float_to_decimal(row[COL_VALUE]),
+            quelle=row[COL_QUELLE],
         )
         for row in table.iter_rows(named=True)
     ]
