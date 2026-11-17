@@ -29,6 +29,10 @@ var kinds = map[string]kind{
 		parse: func(b []byte) (any, error) { var v mdq.Zaehlerstand; err := json.Unmarshal(b, &v); return v, err },
 		dump:  func(v any) ([]byte, error) { return json.Marshal(v) },
 	},
+	"einflusswert": {
+		parse: func(b []byte) (any, error) { var v mdq.Einflusswert; err := json.Unmarshal(b, &v); return v, err },
+		dump:  func(v any) ([]byte, error) { return json.Marshal(v) },
+	},
 }
 
 func TestValidFixturesParseAndRoundTrip(t *testing.T) {
@@ -60,9 +64,12 @@ func TestInvalidFixturesAreRejected(t *testing.T) {
 			require.Error(t, err)
 			// json.Unmarshal may report syntax errors itself; the Parse functions always give a *ValidationError
 			var ve *mdq.ValidationError
-			if strings.HasPrefix(name, "messwert") {
+			switch {
+			case strings.HasPrefix(name, "messwert"):
 				_, err = mdq.ParseMesswert(fixtureRead(t, name))
-			} else {
+			case strings.HasPrefix(name, "einflusswert"):
+				_, err = mdq.ParseEinflusswert(fixtureRead(t, name))
+			default:
 				_, err = mdq.ParseZaehlerstand(fixtureRead(t, name))
 			}
 			assert.ErrorAs(t, err, &ve)
@@ -152,12 +159,14 @@ func TestProtoEnumsFixtureAgreesWithGoEnums(t *testing.T) {
 		"Herkunft":  {"fremd", "mqa"},
 		"Profiltyp": {"haushalt", "gewerbe", "industrie", "unbekannt"},
 		"Richtung":  {"bezug", "einspeisung"},
+		"Groesse":   {"temperatur", "globalstrahlung"},
 	}
 	validators := map[string]func(string) error{
 		"Status":    func(s string) error { return mdq.Status(s).Validate() },
 		"Herkunft":  func(s string) error { return mdq.Herkunft(s).Validate() },
 		"Profiltyp": func(s string) error { return mdq.Profiltyp(s).Validate() },
 		"Richtung":  func(s string) error { return mdq.Richtung(s).Validate() },
+		"Groesse":   func(s string) error { return mdq.Groesse(s).Validate() },
 	}
 	for name, e := range enums {
 		var got []string
@@ -169,6 +178,15 @@ func TestProtoEnumsFixtureAgreesWithGoEnums(t *testing.T) {
 		for _, bad := range []string{"", strings.ToUpper(got[0]), "gemessen"} {
 			assert.Error(t, validators[name](bad), "%s %q", name, bad)
 		}
+	}
+}
+
+func TestEinflussResolutionValidate(t *testing.T) {
+	for _, ok := range []string{"PT1H", "PT15M"} {
+		assert.NoError(t, mdq.EinflussResolution(ok).Validate(), ok)
+	}
+	for _, bad := range []string{"pt1h", "PT30M", "", "P1D"} {
+		assert.Error(t, mdq.EinflussResolution(bad).Validate(), "%q", bad)
 	}
 }
 
@@ -418,9 +436,12 @@ func TestParseFunctionsReturnValidationErrors(t *testing.T) {
 func TestParseFunctionsMatchFixtures(t *testing.T) {
 	for _, name := range fixtureFiles(t, "valid") {
 		var err error
-		if strings.HasPrefix(name, "messwert") {
+		switch {
+		case strings.HasPrefix(name, "messwert"):
 			_, err = mdq.ParseMesswert(fixtureRead(t, name))
-		} else {
+		case strings.HasPrefix(name, "einflusswert"):
+			_, err = mdq.ParseEinflusswert(fixtureRead(t, name))
+		default:
 			_, err = mdq.ParseZaehlerstand(fixtureRead(t, name))
 		}
 		assert.NoError(t, err, name)

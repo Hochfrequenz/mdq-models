@@ -15,7 +15,7 @@ from typing import Any
 import pytest
 from pydantic import BaseModel
 
-from mdq_models import Herkunft, Messwert, Profiltyp, Richtung, Status, Zaehlerstand
+from mdq_models import Einflusswert, Groesse, Herkunft, Messwert, Profiltyp, Richtung, Status, Zaehlerstand
 
 ROOT = Path(__file__).resolve().parent.parent
 PROTO_DIR = ROOT / "proto" / "mdq" / "v1"
@@ -84,12 +84,17 @@ def parse_proto(text: str) -> tuple[dict[str, dict[str, str]], dict[str, dict[st
     return messages, enums
 
 
-MODELS: dict[str, type[BaseModel]] = {"Messwert": Messwert, "Zaehlerstand": Zaehlerstand}
+MODELS: dict[str, type[BaseModel]] = {
+    "Messwert": Messwert,
+    "Zaehlerstand": Zaehlerstand,
+    "Einflusswert": Einflusswert,
+}
 ENUMS: dict[str, type[StrEnum]] = {
     "Status": Status,
     "Herkunft": Herkunft,
     "Profiltyp": Profiltyp,
     "Richtung": Richtung,
+    "Groesse": Groesse,
 }
 
 

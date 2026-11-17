@@ -1,5 +1,6 @@
 // Package mdqmodels holds the hand-written data models of the canonical meter-reading schema:
-// Messwert (one value per quarter hour) and Zaehlerstand (a meter reading).
+// Messwert (one value per quarter hour), Zaehlerstand (a meter reading) and Einflusswert (an influence
+// value such as the air temperature).
 //
 // The contract is the JSON form of the types in this package, pinned by the shared fixtures in
 // testdata/, which the Go and the Python models both parse and round-trip. The gRPC contract lives

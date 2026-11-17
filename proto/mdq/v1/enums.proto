@@ -63,3 +63,14 @@ enum Richtung {
   // RICHTUNG_EINSPEISUNG is feed-in to the grid (JSON: "einspeisung").
   RICHTUNG_EINSPEISUNG = 2;
 }
+
+// Groesse is the physical quantity of an Einflusswert (JSON: "temperatur", "globalstrahlung"). The unit
+// is fixed per value.
+enum Groesse {
+  // GROESSE_UNSPECIFIED is the proto3 zero value. It is never valid in data.
+  GROESSE_UNSPECIFIED = 0;
+  // GROESSE_TEMPERATUR is the air temperature at 2 m in degrees Celsius (JSON: "temperatur").
+  GROESSE_TEMPERATUR = 1;
+  // GROESSE_GLOBALSTRAHLUNG is the global irradiance in W/m2 (JSON: "globalstrahlung").
+  GROESSE_GLOBALSTRAHLUNG = 2;
+}

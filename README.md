@@ -11,7 +11,8 @@
 ![Packaging Test](https://github.com/Hochfrequenz/mdq-models/workflows/Packaging%20Test/badge.svg)
 
 Data models of the **canonical meter-reading schema, version 1**: `Messwert` (one value per market
-location and quarter hour) and `Zaehlerstand` (a meter reading, the second input of the schema).
+location and quarter hour), `Zaehlerstand` (a meter reading, the second input of the schema) and
+`Einflusswert` (one value of an influencing quantity such as weather, per market location and period).
 
 This repository holds
 
@@ -33,10 +34,15 @@ invalid fixture, so Go and Python agree on the contract by construction.
 |---|---|
 | `Messwert` keys | In this order on output: `malo`, `timestamp`, `resolution`, `value`, `status`, `herkunft`, `profiltyp`, `richtung`. All eight are **required**; `value` and `herkunft` are required-but-nullable (always written, `null` when unset). A missing key is rejected, also when its value would be `null`. |
 | `Zaehlerstand` keys | `malo`, `timestamp`, `value`, all required; `value` is never `null`. |
+| `Einflusswert` keys | In this order on output: `malo`, `timestamp`, `resolution`, `groesse`, `value`, `quelle`. All six are **required**; `value` is required-but-nullable (always written, `null` when the value is missing). |
 | Strict reading | **Unknown keys and duplicate keys are rejected** (at every nesting level), so a typo fails loudly and two parsers cannot read different data from the same bytes. Key order matters only for output; parsing accepts any order. The top level must be a JSON object. Invalid UTF-8, a byte order mark and UTF-16 are rejected. |
 | `malo` | `^[1-9][0-9]{10}$` (ASCII digits only) with a valid BDEW check digit. |
 | `timestamp` | RFC 3339, upper-case `T`, offset exactly `Z`, whole seconds, years 1900-9999, ASCII digits only. For `Messwert` it is the **start of the quarter hour** (`00:00` is the first of a day, `23:45` the last; it equals the start of a `[from, to)` interval) and must be on the raster (minute divisible by 15, second 0). For `Zaehlerstand` it is a point in time with any whole second. Built in code, a timestamp in any time zone is accepted and written in UTC; a naive timestamp is rejected. |
-| `resolution` | Only `"PT15M"` in v1. |
+| `resolution` | `Messwert`: only `"PT15M"` in v1. `Einflusswert`: `"PT1H"` or `"PT15M"`. |
+| `groesse` | `Einflusswert` only: `temperatur` (air temperature 2 m above ground, mean or representative value of the period, degrees Celsius) or `globalstrahlung` (mean irradiance over the period, W/m²). Case-sensitive. |
+| `quelle` | `Einflusswert` only: where the value comes from, 1 to 64 printable ASCII characters without spaces, for example `dwd:01993`. |
+| `Einflusswert` raster | `timestamp` is the start of the period `[timestamp, timestamp + resolution)`. For `PT1H` it is on the full hour, for `PT15M` on the quarter hour. |
+| `Einflusswert` `value` | A decimal string as for `Messwert`, or `null` for a missing value. `"0"` is the value 0, not a missing value. There is no sign rule: a temperature below zero is a normal value. |
 | `value` | A decimal **string** in its shortest canonical form (`"160"`, `"0.022"`, `"-3.5"`), never a JSON number. At most 12 integer digits and at most 6 decimals (counted after stripping trailing zeros). No exponent, no plus sign, no leading zeros, no trailing zeros after the point (`"1.0"` is rejected), no negative zero, no separators. Negative values are allowed. Producers that compute in floating point must round to 6 decimals first: `"0.1234567"` is rejected, not rounded. |
 | `status` | `wahr`, `vorlaeufig`, `ersatzwert`, `fehlend`. Case-sensitive; the retired `gemessen` is rejected. |
 | `herkunft` | `fremd`, `mqa`. `null` **iff** `status` is `fehlend`; `wahr` requires `fremd`. |
@@ -57,7 +63,7 @@ Python 3.11 or newer; `mdq_models` itself depends only on pydantic and never imp
 
 ## Go
 
-Read untrusted bytes with `ParseMesswert` / `ParseZaehlerstand`: every failure is a
+Read untrusted bytes with `ParseMesswert` / `ParseZaehlerstand` / `ParseEinflusswert`: every failure is a
 `*ValidationError`. Plain `json.Unmarshal` reports syntax errors as `*json.SyntaxError` and leaves a
 `*Messwert` nil on a top-level `null`.
 
@@ -147,7 +153,8 @@ except ValidationError:
 
 Plain pydantic keeps the last of two duplicate keys; `mdq_models.check_json(raw)` is the explicit check for
 paths that bypass `model_validate_json`. Use `Messwert.model_validate_json` (or
-`Zaehlerstand.model_validate_json`) for raw JSON. All parse failures are
+`Zaehlerstand.model_validate_json`, `Einflusswert.model_validate_json`) for raw JSON; the duplicate-key
+check applies to all three. All parse failures are
 `pydantic.ValidationError`.
 
 ### Polars
@@ -171,6 +178,32 @@ rounds silently. `from_frame` converts each float through its shortest represent
 6 decimals. Both are strict about the table: unknown columns and wrong dtypes raise `ValueError`.
 Importing `mdq_models.polars` without the extra raises an `ImportError` that names it.
 
+`Einflusswert` has its own table, the **Einfluss table**, with six columns: `malo`, `timestamp`,
+`resolution`, `groesse`, `value` and `quelle` (the schema is `EINFLUSS_COLUMNS` and
+`EINFLUSS_DTYPES`). Unlike the `Messwert` table it keeps `resolution` as a column, because two rasters
+(`PT1H`, `PT15M`) are allowed. `timestamp` is in `Europe/Berlin`, `value` is `Float64` with `null` for a
+missing value, and `NaN` is forbidden. `einfluss_to_frame` and `einfluss_from_frame` convert from and to
+`Einflusswert` rows; `pruefe_einfluss_frame(frame)` validates a table (for example one read from a file)
+without building model objects and raises `ValueError` naming the column and the first affected row.
+
+```python polars
+from mdq_models import Einflusswert
+from mdq_models.polars import einfluss_from_frame, einfluss_to_frame, pruefe_einfluss_frame
+
+temperatur = Einflusswert.model_validate_json(
+    '{"malo":"68283561554","timestamp":"2026-01-15T10:00:00Z","resolution":"PT1H",'
+    '"groesse":"temperatur","value":"-3.5","quelle":"dwd:01993"}'
+)
+strahlung = Einflusswert.model_validate_json(
+    '{"malo":"68283561554","timestamp":"2026-01-15T10:00:00Z","resolution":"PT1H",'
+    '"groesse":"globalstrahlung","value":null,"quelle":"dwd:01993"}'
+)
+frame = einfluss_to_frame([temperatur, strahlung])  # six columns, timestamps in Europe/Berlin
+print(frame["timestamp"][0])  # 2026-01-15 11:00:00+01:00
+pruefe_einfluss_frame(frame)  # raises ValueError if the table breaks a rule
+assert einfluss_from_frame(frame) == [temperatur, strahlung]
+```
+
 The Python snippets above are run by [`unittests/test_readme.py`](unittests/test_readme.py), so they
 cannot rot.
 
@@ -180,6 +213,7 @@ cannot rot.
 testdata/
   messwert/{valid,invalid}/        one JSON document per file (DST days, boundaries, every rejected rule, ...)
   zaehlerstand/{valid,invalid}/
+  einflusswert/{valid,invalid}/    one JSON document per file (both rasters, DST days, missing value, ...)
   invalid_reasons.json             why each invalid fixture is rejected
   malo_ids.json                    valid and invalid MaLo IDs, check digits
   herkunft_status.json             all status x herkunft combinations
@@ -195,6 +229,42 @@ run the same fixtures.
 identical: compact JSON, keys in contract order, timestamps in UTC with `Z`.
 Every invalid fixture has an entry in `testdata/invalid_reasons.json`, so a fixture cannot pass by being
 rejected for the wrong reason.
+
+## Einflusswert aus Bright Sky
+
+Rules for everyone who maps [Bright Sky](https://brightsky.dev) responses (hourly DWD weather data) to
+`Einflusswert`. The model only knows "the period starting at `timestamp`"; what a source timestamp means
+is decided by the mapping.
+
+Request with Bright Sky's default `units=dwd` (degrees Celsius, kWh/m²). With `units=si` (K, J/m²) the rules
+below do not apply as written.
+
+1. **Time reference.** Convert every Bright Sky timestamp T to UTC first, then shift. Never calculate in
+   local time.
+2. **Global irradiance.** `solar` at T covers the previous 60 minutes, so `timestamp = T - 1 h`,
+   `resolution = PT1H`, `groesse = globalstrahlung` and `value = solar * 1000` (kWh/m² per hour is the
+   mean W/m²). Calculate it as a decimal from the JSON text, not via float, so that at most 6 decimals
+   result.
+3. **Temperature.** `temperature` at T is an instantaneous value held for `[T, T + 1 h)`, so
+   `timestamp = T`, `resolution = PT1H`, `groesse = temperatur`, degrees Celsius unchanged.
+4. **Source.** `quelle = "dwd:" + dwd_station_id` of the entry in `sources` whose `id` equals
+   `fallback_source_ids[<field>]` if present, otherwise the record's `source_id`.
+5. **Missing values.** If the source has `null`, store a missing value (`"value": null`). Never fill or
+   interpolate it, and never up-sample to 15 minutes.
+6. **Licence.** DWD data is CC BY 4.0: credit "Quelle: Deutscher Wetterdienst" and state any changes you
+   made. Bright Sky itself is MIT licensed.
+7. **Worked example.** A Bright Sky record with `timestamp "2026-03-29T03:00:00+02:00"`, `source_id 1`,
+   `temperature 4.2`, `solar 0.123` and `fallback_source_ids {"solar": 2}`, with `sources` id 1 ->
+   `dwd_station_id "01993"` and id 2 -> `"03096"` (station ids are illustrative), gives these two
+   documents for the market location `68283561554`:
+
+```json einflusswert
+{"malo":"68283561554","timestamp":"2026-03-29T01:00:00Z","resolution":"PT1H","groesse":"temperatur","value":"4.2","quelle":"dwd:01993"}
+{"malo":"68283561554","timestamp":"2026-03-29T00:00:00Z","resolution":"PT1H","groesse":"globalstrahlung","value":"123","quelle":"dwd:03096"}
+```
+
+Note the irradiance hour: it runs from 01:00 CET to 03:00 CEST, which is one real hour (UTC 00:00 to
+01:00) on the day of the clock change. The 02:00 to 03:00 wall-clock hour does not exist that day.
 
 ## How CI keeps Go, Python and proto in step
 

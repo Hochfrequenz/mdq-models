@@ -78,5 +78,20 @@
         "json": "einspeisung"
       }
     ]
+  },
+  "Groesse": {
+    "unspecified": "GROESSE_UNSPECIFIED",
+    "values": [
+      {
+        "name": "GROESSE_TEMPERATUR",
+        "number": 1,
+        "json": "temperatur"
+      },
+      {
+        "name": "GROESSE_GLOBALSTRAHLUNG",
+        "number": 2,
+        "json": "globalstrahlung"
+      }
+    ]
   }
 }

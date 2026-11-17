@@ -1,3 +1,16 @@
+einflusswert/basic.json	{"malo":"68283561554","timestamp":"2026-01-15T10:00:00Z","resolution":"PT1H","groesse":"temperatur","value":"-3.5","quelle":"dwd:01993"}
+einflusswert/dst_autumn_change_day_2026_10_25_first_repeated_hour.json	{"malo":"68283561554","timestamp":"2026-10-25T00:00:00Z","resolution":"PT1H","groesse":"temperatur","value":"-3.5","quelle":"dwd:01993"}
+einflusswert/dst_autumn_change_day_2026_10_25_second_repeated_hour.json	{"malo":"68283561554","timestamp":"2026-10-25T01:00:00Z","resolution":"PT1H","groesse":"temperatur","value":"-3.5","quelle":"dwd:01993"}
+einflusswert/dst_spring_change_day_2026_03_29_first_summer_time_hour.json	{"malo":"68283561554","timestamp":"2026-03-29T01:00:00Z","resolution":"PT1H","groesse":"temperatur","value":"-3.5","quelle":"dwd:01993"}
+einflusswert/dst_spring_change_day_2026_03_29_last_winter_time_hour.json	{"malo":"68283561554","timestamp":"2026-03-29T00:00:00Z","resolution":"PT1H","groesse":"temperatur","value":"-3.5","quelle":"dwd:01993"}
+einflusswert/globalstrahlung.json	{"malo":"68283561554","timestamp":"2026-01-15T10:00:00Z","resolution":"PT1H","groesse":"globalstrahlung","value":"512.25","quelle":"dwd:01993"}
+einflusswert/globalstrahlung_value_zero.json	{"malo":"68283561554","timestamp":"2026-01-15T10:00:00Z","resolution":"PT1H","groesse":"globalstrahlung","value":"0","quelle":"dwd:01993"}
+einflusswert/key_order_reversed.json	{"malo":"68283561554","timestamp":"2026-01-15T10:00:00Z","resolution":"PT1H","groesse":"temperatur","value":"-3.5","quelle":"dwd:01993"}
+einflusswert/malo_80167773998.json	{"malo":"80167773998","timestamp":"2026-01-15T10:00:00Z","resolution":"PT1H","groesse":"temperatur","value":"-3.5","quelle":"dwd:01993"}
+einflusswert/quelle_64_characters.json	{"malo":"68283561554","timestamp":"2026-01-15T10:00:00Z","resolution":"PT1H","groesse":"temperatur","value":"-3.5","quelle":"dwd:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+einflusswert/resolution_pt15m.json	{"malo":"68283561554","timestamp":"2026-01-15T10:15:00Z","resolution":"PT15M","groesse":"temperatur","value":"-3.5","quelle":"dwd:01993"}
+einflusswert/value_null.json	{"malo":"68283561554","timestamp":"2026-01-15T10:00:00Z","resolution":"PT1H","groesse":"temperatur","value":null,"quelle":"dwd:01993"}
+einflusswert/value_smallest_fraction.json	{"malo":"68283561554","timestamp":"2026-01-15T10:00:00Z","resolution":"PT1H","groesse":"temperatur","value":"0.000001","quelle":"dwd:01993"}
 messwert/dst_autumn_change_day_2026_10_25.json	{"malo":"68283561554","timestamp":"2026-10-25T01:00:00Z","resolution":"PT15M","value":"1.5","status":"wahr","herkunft":"fremd","profiltyp":"haushalt","richtung":"bezug"}
 messwert/dst_autumn_change_day_2026_10_25_first_quarter_hour.json	{"malo":"68283561554","timestamp":"2026-10-24T22:00:00Z","resolution":"PT15M","value":"1.5","status":"wahr","herkunft":"fremd","profiltyp":"haushalt","richtung":"bezug"}
 messwert/dst_autumn_change_day_2026_10_25_last_quarter_hour.json	{"malo":"68283561554","timestamp":"2026-10-25T22:45:00Z","resolution":"PT15M","value":"1.5","status":"wahr","herkunft":"fremd","profiltyp":"haushalt","richtung":"bezug"}

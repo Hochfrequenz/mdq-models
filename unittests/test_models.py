@@ -12,6 +12,9 @@ import pytest
 from pydantic import BaseModel, TypeAdapter, ValidationError
 
 from mdq_models import (
+    EinflussResolution,
+    Einflusswert,
+    Groesse,
     Herkunft,
     Messwert,
     Profiltyp,
@@ -26,7 +29,7 @@ from mdq_models import (
 
 TESTDATA = Path(__file__).resolve().parent.parent / "testdata"
 ENCODING_FIXTURES = {"utf8_bom.json", "utf16_encoded.json", "invalid_utf8_bytes.json"}
-MODELS: dict[str, type[BaseModel]] = {"messwert": Messwert, "zaehlerstand": Zaehlerstand}
+MODELS: dict[str, type[BaseModel]] = {"messwert": Messwert, "zaehlerstand": Zaehlerstand, "einflusswert": Einflusswert}
 
 
 def _files(validity: str) -> list[Path]:
@@ -295,15 +298,28 @@ def test_models_are_frozen() -> None:
 
 
 def test_every_field_has_a_description() -> None:
-    for cls in (Messwert, Zaehlerstand):
+    for cls in (Messwert, Zaehlerstand, Einflusswert):
         for name, field in cls.model_fields.items():
             assert field.description, f"{cls.__name__}.{name}"
 
 
 def test_enum_values_match_the_proto_enums_file() -> None:
     enums = _shared("proto_enums.json")
-    for cls, name in ((Status, "Status"), (Herkunft, "Herkunft"), (Profiltyp, "Profiltyp"), (Richtung, "Richtung")):
+    for cls, name in (
+        (Status, "Status"),
+        (Herkunft, "Herkunft"),
+        (Profiltyp, "Profiltyp"),
+        (Richtung, "Richtung"),
+        (Groesse, "Groesse"),
+    ):
         assert [m.value for m in cls] == [v["json"] for v in enums[name]["values"]]
+
+
+def test_einfluss_resolution_accepts_exactly_pt1h_and_pt15m() -> None:
+    assert [m.value for m in EinflussResolution] == ["PT1H", "PT15M"]
+    for bad in ("pt1h", "PT30M", "", "P1D"):
+        with pytest.raises(ValueError):
+            EinflussResolution(bad)
 
 
 # --- shared cases -----------------------------------------------------------------------------------------------

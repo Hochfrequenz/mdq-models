@@ -5,14 +5,18 @@ from pathlib import Path
 
 import pytest
 
+from mdq_models import Einflusswert
+
 README = Path(__file__).resolve().parent.parent / "README.md"
 # A fenced block whose info string is "python" (always run) or "python polars" (needs the extra).
 BLOCK = re.compile(r"^```python( polars)?\n(.*?)^```$", re.DOTALL | re.MULTILINE)
+# A fenced block of JSON lines (one Einflusswert document per line).
+EINFLUSSWERT_BLOCK = re.compile(r"^```json einflusswert\n(.*?)^```$", re.DOTALL | re.MULTILINE)
 
 
 def test_readme_python_snippets_run(capsys: pytest.CaptureFixture[str]) -> None:
     blocks = BLOCK.findall(README.read_text(encoding="utf-8"))
-    assert [needs_polars for needs_polars, _ in blocks] == ["", " polars"]
+    assert [needs_polars for needs_polars, _ in blocks] == ["", " polars", " polars"]
     namespace: dict[str, object] = {}  # shared: the Polars snippet continues the first one
     exec(compile(blocks[0][1], "<README.md python>", "exec"), namespace)
     printed = capsys.readouterr().out.splitlines()
@@ -25,3 +29,14 @@ def test_readme_python_snippets_run(capsys: pytest.CaptureFixture[str]) -> None:
     pytest.importorskip("polars")
     exec(compile(blocks[1][1], "<README.md python polars>", "exec"), namespace)
     assert capsys.readouterr().out.strip() == "2026-03-29 01:45:00+01:00"
+    exec(compile(blocks[2][1], "<README.md python polars Einflusswert>", "exec"), namespace)
+    assert capsys.readouterr().out.strip() == "2026-01-15 11:00:00+01:00"
+
+
+def test_readme_bright_sky_example_is_valid() -> None:
+    blocks = EINFLUSSWERT_BLOCK.findall(README.read_text(encoding="utf-8"))
+    assert len(blocks) == 1
+    lines = blocks[0].splitlines()
+    assert len(lines) == 2
+    for line in lines:
+        assert Einflusswert.model_validate_json(line).model_dump_json() == line

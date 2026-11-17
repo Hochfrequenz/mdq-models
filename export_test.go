@@ -16,5 +16,8 @@ func EnumValues() map[string][]string {
 	for _, v := range richtungValues {
 		out["Richtung"] = append(out["Richtung"], string(v))
 	}
+	for _, v := range groesseValues {
+		out["Groesse"] = append(out["Groesse"], string(v))
+	}
 	return out
 }

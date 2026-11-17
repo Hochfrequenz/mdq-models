@@ -1,4 +1,12 @@
 {
+  "Einflusswert": {
+    "groesse": "Groesse = 4",
+    "malo": "string = 1",
+    "quelle": "string = 6",
+    "resolution": "string = 3",
+    "timestamp": "google.protobuf.Timestamp = 2",
+    "value": "optional string = 5"
+  },
   "Messwert": {
     "herkunft": "optional Herkunft = 6",
     "malo": "string = 1",

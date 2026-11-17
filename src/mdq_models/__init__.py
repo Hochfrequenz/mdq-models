@@ -6,7 +6,7 @@ the Go and the Python models both round-trip. Nothing here is generated.
 Read JSON with ``Messwert.model_validate_json`` (it rejects duplicate keys, which plain pydantic would
 silently resolve) and write it with ``model_dump_json()``.
 
-Limit: only ``model_validate_json`` of ``Messwert`` and ``Zaehlerstand`` rejects duplicate keys.
+Limit: only ``model_validate_json`` of ``Messwert``, ``Zaehlerstand`` and ``Einflusswert`` rejects duplicate keys.
 ``TypeAdapter(...).validate_json``, a model that contains one of them and ``__pydantic_validator__`` go straight to
 pydantic's parser and keep the last duplicate; call :func:`check_json` on the raw document first. All parse
 failures are ``pydantic.ValidationError``.
@@ -14,12 +14,16 @@ failures are ``pydantic.ValidationError``.
 
 from mdq_models._base import check_json
 from mdq_models._version import version as __version__
-from mdq_models.enums import Herkunft, Profiltyp, Richtung, Status
+from mdq_models.einflusswert import Einflusswert
+from mdq_models.enums import EinflussResolution, Groesse, Herkunft, Profiltyp, Richtung, Status
 from mdq_models.malo import herkunft_passt_zu_status, is_valid_malo_id, malo_check_digit
 from mdq_models.messwert import Messwert
 from mdq_models.zaehlerstand import Zaehlerstand
 
 __all__ = [
+    "EinflussResolution",
+    "Einflusswert",
+    "Groesse",
     "Herkunft",
     "Messwert",
     "Profiltyp",

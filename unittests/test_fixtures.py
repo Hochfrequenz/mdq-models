@@ -12,25 +12,32 @@ from typing import Any
 import pytest
 
 TESTDATA = Path(__file__).resolve().parent.parent / "testdata"
-KINDS = ("messwert", "zaehlerstand")
+KINDS = ("messwert", "zaehlerstand", "einflusswert")
 KEYS = {
     "messwert": ["malo", "timestamp", "resolution", "value", "status", "herkunft", "profiltyp", "richtung"],
     "zaehlerstand": ["malo", "timestamp", "value"],
+    "einflusswert": ["malo", "timestamp", "resolution", "groesse", "value", "quelle"],
 }
 MALO_RE = re.compile(r"^[1-9][0-9]{10}$", re.ASCII)
 TIMESTAMP_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$", re.ASCII)
 # plan 0.3: shortest canonical form, at most 6 decimal places, no negative zero
 DECIMAL_RE = re.compile(r"-?(0|[1-9][0-9]{0,11})(\.[0-9]{0,5}[1-9])?", re.ASCII)
+QUELLE_RE = re.compile(r"[!-~]{1,64}", re.ASCII)
 ENUMS = {
     "status": {"wahr", "vorlaeufig", "ersatzwert", "fehlend"},
     "herkunft": {"fremd", "mqa"},
     "profiltyp": {"haushalt", "gewerbe", "industrie", "unbekannt"},
     "richtung": {"bezug", "einspeisung"},
+    "groesse": {"temperatur", "globalstrahlung"},
 }
 # Valid fixtures that deliberately do not use the contract key order (parsing accepts any order).
-REORDERED = {"messwert/key_order_reversed.json", "zaehlerstand/key_order_reversed.json"}
+REORDERED = {
+    "messwert/key_order_reversed.json",
+    "zaehlerstand/key_order_reversed.json",
+    "einflusswert/key_order_reversed.json",
+}
 # The only fixtures that contain a duplicate key at some level; duplicate keys are rejected on purpose.
-WITH_DUPLICATES = {"messwert/duplicate_key.json", "zaehlerstand/duplicate_key.json"}
+WITH_DUPLICATES = {"messwert/duplicate_key.json", "zaehlerstand/duplicate_key.json", "einflusswert/duplicate_key.json"}
 
 
 class DuplicateKeyError(ValueError):
@@ -63,10 +70,12 @@ def reference_errors(kind: str, data: Any) -> list[str]:
     malo = data["malo"]
     if not isinstance(malo, str) or not is_valid_malo(malo):
         errors.append("malo")
-    errors.extend(_timestamp_errors(kind, data["timestamp"]))
+    errors.extend(_timestamp_errors(kind, data["timestamp"], data.get("resolution")))
     value = data["value"]
     if value is None:
-        if kind == "zaehlerstand" or data["status"] != "fehlend":
+        if kind == "zaehlerstand" or (
+            kind == "messwert" and data["status"] != "fehlend"
+        ):  # null is valid for einflusswert
             errors.append("value is null")
     elif not isinstance(value, str) or not DECIMAL_RE.fullmatch(value) or value == "-0":
         errors.append("value is not a canonical decimal with at most 6 decimal places")
@@ -74,10 +83,12 @@ def reference_errors(kind: str, data: Any) -> list[str]:
         errors.append("value set for fehlend")
     if kind == "messwert":
         errors.extend(_messwert_errors(data))
+    if kind == "einflusswert":
+        errors.extend(_einflusswert_errors(data))
     return errors
 
 
-def _timestamp_errors(kind: str, ts: Any) -> list[str]:
+def _timestamp_errors(kind: str, ts: Any, resolution: Any = None) -> list[str]:
     if not isinstance(ts, str) or not TIMESTAMP_RE.fullmatch(ts):
         return ["timestamp shape"]
     try:
@@ -87,6 +98,24 @@ def _timestamp_errors(kind: str, ts: Any) -> list[str]:
     errors = [] if 1900 <= parsed.year <= 9999 else ["timestamp year"]
     if kind == "messwert" and (parsed.minute % 15 != 0 or parsed.second != 0):
         errors.append("timestamp is off the 15-minute raster")
+    if kind == "einflusswert":
+        # PT1H: full hour; otherwise (PT15M or a broken resolution, reported separately): 15-minute raster
+        if resolution == "PT1H":
+            if parsed.minute != 0 or parsed.second != 0:
+                errors.append("timestamp is off the hourly raster")
+        elif parsed.minute % 15 != 0 or parsed.second != 0:
+            errors.append("timestamp is off the 15-minute raster")
+    return errors
+
+
+def _einflusswert_errors(data: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    if data["resolution"] not in ("PT1H", "PT15M"):
+        errors.append("resolution")
+    if not isinstance(data["groesse"], str) or data["groesse"] not in ENUMS["groesse"]:
+        errors.append("groesse")
+    if not isinstance(data["quelle"], str) or not QUELLE_RE.fullmatch(data["quelle"]):
+        errors.append("quelle")
     return errors
 
 
@@ -122,9 +151,7 @@ def _files(validity: str) -> list[Path]:
 # Invalid fixtures about the text encoding (BOM, UTF-16, invalid UTF-8): not JSON by design, so the
 # tests that decode fixtures as JSON skip them.
 NOT_JSON = {
-    f"{kind}/{file}"
-    for kind in ("messwert", "zaehlerstand")
-    for file in ("utf8_bom.json", "utf16_encoded.json", "invalid_utf8_bytes.json")
+    f"{kind}/{file}" for kind in KINDS for file in ("utf8_bom.json", "utf16_encoded.json", "invalid_utf8_bytes.json")
 }
 
 
@@ -283,7 +310,7 @@ def test_herkunft_status_is_complete_and_follows_the_rule() -> None:
 
 def test_proto_enums_shape() -> None:
     enums = _load("proto_enums.json")
-    assert set(enums) == {"Status", "Herkunft", "Profiltyp", "Richtung"}
+    assert set(enums) == {"Status", "Herkunft", "Profiltyp", "Richtung", "Groesse"}
     for name, enum in enums.items():
         prefix = name.upper()
         assert enum["unspecified"] == f"{prefix}_UNSPECIFIED"

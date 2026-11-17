@@ -6,7 +6,7 @@ ones from the Hochfrequenz ID generator (`https://markt.lokations.id/json`, vali
 look like real IDs. Invalid IDs are derived from them. The one exception is `51238696781`, the BDEW
 example ID from the MaLo-ID application guide; it is kept in `malo_ids.json` as a check-digit reference.
 
-## `messwert/` and `zaehlerstand/`
+## `messwert/`, `zaehlerstand/` and `einflusswert/`
 
 One JSON document per file.
 
@@ -18,6 +18,11 @@ One JSON document per file.
   fixtures are raw JSON that repeats a key; both values would be valid on their own, so a parser
   that keeps the last value would wrongly accept them. They are the only files that contain a
   duplicate key, and both test suites check that.
+
+`einflusswert/` follows the same rules. Its `timestamp` is the start of the period and must be on the
+raster of its `resolution` (`PT1H`: full hour, `PT15M`: quarter hour). `value` is always nullable:
+`null` is a missing value, `"0"` is the value 0 (`globalstrahlung_value_zero.json`,
+`value_null.json`).
 
 ## `invalid_reasons.json`
 
@@ -42,14 +47,14 @@ The empty string `""` is an unknown herkunft, not "unset": only `null` means uns
 
 ## `proto_fields.json`
 
-Object keyed by proto message name (`Messwert`, `Zaehlerstand`) with an object from field name to
+Object keyed by proto message name (`Messwert`, `Zaehlerstand`, `Einflusswert`) with an object from field name to
 `"<label type> = <number>"` (for example `"value": "optional string = 4"`). Pins the field numbers and
 types of `proto/mdq/v1/*.proto`, which are the gRPC wire contract and must never change. Both
 languages compare it with the proto files; a new field is added here together with the proto.
 
 ## `proto_enums.json`
 
-Object keyed by enum name (`Status`, `Herkunft`, `Profiltyp`, `Richtung`) with `unspecified` (name of
+Object keyed by enum name (`Status`, `Herkunft`, `Profiltyp`, `Richtung`, `Groesse`) with `unspecified` (name of
 the zero constant) and `values`: a list of `{name, number, json}` pinning each proto constant, its
 number and its JSON string.
 
@@ -58,7 +63,7 @@ number and its JSON string.
 Written by the Go tests (`go test ./... -update`), compared by both languages: the exact bytes the
 models write for every valid fixture. Format:
 
-- one line per valid fixture: `<kind>/<file>\t<json>`, where `<kind>` is `messwert` or `zaehlerstand`,
+- one line per valid fixture: `<kind>/<file>\t<json>`, where `<kind>` is `einflusswert`, `messwert` or `zaehlerstand`,
   `<file>` is the fixture's file name (no `valid/` segment) and `\t` is a single tab;
 - `<json>` is compact JSON without any spaces, keys in contract order, timestamps in UTC with `Z`;
 - lines are sorted by bytes and separated by `\n` (never `\r\n`); the file ends with a `\n`.
