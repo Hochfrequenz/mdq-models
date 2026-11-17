@@ -13,6 +13,7 @@ from pydantic import BaseModel, TypeAdapter, ValidationError
 
 from mdq_models import (
     EinflussResolution,
+    Einflusswert,
     Groesse,
     Herkunft,
     Messwert,
@@ -297,7 +298,7 @@ def test_models_are_frozen() -> None:
 
 
 def test_every_field_has_a_description() -> None:
-    for cls in (Messwert, Zaehlerstand):
+    for cls in (Messwert, Zaehlerstand, Einflusswert):
         for name, field in cls.model_fields.items():
             assert field.description, f"{cls.__name__}.{name}"
 
