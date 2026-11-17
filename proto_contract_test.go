@@ -232,7 +232,7 @@ func TestProtoMessageFieldsEqualGoFields(t *testing.T) {
 		Timestamp: time.Date(2026, 1, 15, 10, 15, 1, 0, time.UTC),
 		Value:     mdq.Decimal("1.5"),
 	}
-	models := map[string]any{"Messwert": validMesswert(), "Zaehlerstand": zaehlerstand}
+	models := map[string]any{"Messwert": validMesswert(), "Zaehlerstand": zaehlerstand, "Einflusswert": validEinflusswert()}
 	proto := protoFields(t)
 	require.Len(t, proto, len(models), "every proto message needs a Go model")
 	for name, sample := range models {
@@ -268,6 +268,10 @@ var goFieldJSONKeys = map[string]map[string]string{
 		"Status": "status", "Herkunft": "herkunft", "Profiltyp": "profiltyp", "Richtung": "richtung",
 	},
 	"Zaehlerstand": {"Malo": "malo", "Timestamp": "timestamp", "Value": "value"},
+	"Einflusswert": {
+		"Malo": "malo", "Timestamp": "timestamp", "Resolution": "resolution", "Groesse": "groesse",
+		"Value": "value", "Quelle": "quelle",
+	},
 }
 
 func TestProtoEnumsMatchPinnedFileAndGoEnums(t *testing.T) {

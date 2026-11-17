@@ -1,0 +1,32 @@
+// Einflusswert: one row of an influence series (for example air temperature) for one market location.
+//
+// This proto is the gRPC contract only. The JSON form is produced and read by the hand-written Go and
+// Python models in this repository, never by protojson: protojson would omit unset `optional` fields
+// instead of writing `null`. The JSON rules (strict keys, canonical forms) live in the models.
+//
+// No `*_UNSPECIFIED` enum value is ever valid in data.
+syntax = "proto3";
+
+package mdq.v1;
+
+import "google/protobuf/timestamp.proto";
+import "mdq/v1/enums.proto";
+
+// Einflusswert is an influence value of one market location (MaLo) for one period.
+message Einflusswert {
+  // malo is the market location ID: 11 ASCII digits, no leading 0, valid check digit.
+  string malo = 1;
+  // timestamp is the START of the period [timestamp, timestamp + resolution), in UTC. Whole seconds;
+  // minute divisible by 15, second 0, and minute 0 if resolution is "PT1H".
+  google.protobuf.Timestamp timestamp = 2;
+  // resolution is the raster as an ISO 8601 duration: "PT15M" or "PT1H".
+  string resolution = 3;
+  // groesse is the measured quantity; its unit is fixed per value. Never GROESSE_UNSPECIFIED.
+  Groesse groesse = 4;
+  // value is the value as a canonical decimal string: shortest form, at most 12 integer digits and at
+  // most 6 decimals, no exponent, no "+", no leading or trailing zeros. Negative values are allowed.
+  // Unset if the value is missing; "0" is a value.
+  optional string value = 5;
+  // quelle is the source of the value: 1 to 64 printable ASCII characters without spaces.
+  string quelle = 6;
+}
