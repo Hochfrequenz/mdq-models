@@ -15,7 +15,7 @@ from typing import Any
 import pytest
 from pydantic import BaseModel
 
-from mdq_models import Herkunft, Messwert, Profiltyp, Richtung, Status, Zaehlerstand
+from mdq_models import Groesse, Herkunft, Messwert, Profiltyp, Richtung, Status, Zaehlerstand
 
 ROOT = Path(__file__).resolve().parent.parent
 PROTO_DIR = ROOT / "proto" / "mdq" / "v1"
@@ -90,6 +90,7 @@ ENUMS: dict[str, type[StrEnum]] = {
     "Herkunft": Herkunft,
     "Profiltyp": Profiltyp,
     "Richtung": Richtung,
+    "Groesse": Groesse,
 }
 
 

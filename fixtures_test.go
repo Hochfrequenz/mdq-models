@@ -517,9 +517,9 @@ func TestProtoEnumsFixtureShape(t *testing.T) {
 		} `json:"values"`
 	}
 	require.NoError(t, json.Unmarshal(fixtureDuplicateFree(t, "proto_enums.json"), &enums))
-	require.Len(t, enums, 4)
+	require.Len(t, enums, 5)
 	for name, e := range enums {
-		prefix := map[string]string{"Status": "STATUS", "Herkunft": "HERKUNFT", "Profiltyp": "PROFILTYP", "Richtung": "RICHTUNG"}[name]
+		prefix := map[string]string{"Status": "STATUS", "Herkunft": "HERKUNFT", "Profiltyp": "PROFILTYP", "Richtung": "RICHTUNG", "Groesse": "GROESSE"}[name]
 		require.NotEmpty(t, prefix, name)
 		assert.Equal(t, prefix+"_UNSPECIFIED", e.Unspecified)
 		require.NotEmpty(t, e.Values)

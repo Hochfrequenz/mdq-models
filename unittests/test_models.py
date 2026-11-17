@@ -12,6 +12,8 @@ import pytest
 from pydantic import BaseModel, TypeAdapter, ValidationError
 
 from mdq_models import (
+    EinflussResolution,
+    Groesse,
     Herkunft,
     Messwert,
     Profiltyp,
@@ -302,8 +304,21 @@ def test_every_field_has_a_description() -> None:
 
 def test_enum_values_match_the_proto_enums_file() -> None:
     enums = _shared("proto_enums.json")
-    for cls, name in ((Status, "Status"), (Herkunft, "Herkunft"), (Profiltyp, "Profiltyp"), (Richtung, "Richtung")):
+    for cls, name in (
+        (Status, "Status"),
+        (Herkunft, "Herkunft"),
+        (Profiltyp, "Profiltyp"),
+        (Richtung, "Richtung"),
+        (Groesse, "Groesse"),
+    ):
         assert [m.value for m in cls] == [v["json"] for v in enums[name]["values"]]
+
+
+def test_einfluss_resolution_accepts_exactly_pt1h_and_pt15m() -> None:
+    assert [m.value for m in EinflussResolution] == ["PT1H", "PT15M"]
+    for bad in ("pt1h", "PT30M", "", "P1D"):
+        with pytest.raises(ValueError):
+            EinflussResolution(bad)
 
 
 # --- shared cases -----------------------------------------------------------------------------------------------

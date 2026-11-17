@@ -283,7 +283,7 @@ def test_herkunft_status_is_complete_and_follows_the_rule() -> None:
 
 def test_proto_enums_shape() -> None:
     enums = _load("proto_enums.json")
-    assert set(enums) == {"Status", "Herkunft", "Profiltyp", "Richtung"}
+    assert set(enums) == {"Status", "Herkunft", "Profiltyp", "Richtung", "Groesse"}
     for name, enum in enums.items():
         prefix = name.upper()
         assert enum["unspecified"] == f"{prefix}_UNSPECIFIED"

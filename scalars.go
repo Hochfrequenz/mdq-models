@@ -227,6 +227,35 @@ const (
 
 var richtungValues = []Richtung{RichtungBezug, RichtungEinspeisung}
 
+// Groesse is the physical quantity of an Einflusswert. The unit is fixed per value and there is no unit
+// field.
+type Groesse string
+
+// The values of Groesse.
+const (
+	// GroesseTemperatur is the air temperature at 2 m in degrees Celsius (mean or representative value
+	// of the period).
+	GroesseTemperatur Groesse = "temperatur"
+	// GroesseGlobalstrahlung is the global irradiance in W/m2 (mean irradiance over the period).
+	GroesseGlobalstrahlung Groesse = "globalstrahlung"
+)
+
+var groesseValues = []Groesse{GroesseTemperatur, GroesseGlobalstrahlung}
+
+// EinflussResolution is the time raster of an Einflusswert, written as an ISO 8601 duration. Unlike
+// Resolution (Messwert, PT15M only) it also allows hourly values.
+type EinflussResolution string
+
+// The values of EinflussResolution.
+const (
+	// EinflussPT1H is one value per hour.
+	EinflussPT1H EinflussResolution = "PT1H"
+	// EinflussPT15M is one value per quarter hour.
+	EinflussPT15M EinflussResolution = "PT15M"
+)
+
+var einflussResolutionValues = []EinflussResolution{EinflussPT1H, EinflussPT15M}
+
 // enumError is the rule text of every enum: the values are case-sensitive and closed, so a typo or a
 // retired value such as "gemessen" fails loudly instead of being passed on.
 func enumError[T ~string](v T, allowed []T) error {
@@ -323,6 +352,40 @@ func (r Richtung) MarshalJSON() ([]byte, error) { return marshalEnum(r, richtung
 // UnmarshalJSON reads a JSON string and validates it; null is rejected.
 func (r *Richtung) UnmarshalJSON(b []byte) error {
 	v, err := unmarshalEnum(b, richtungValues)
+	if err != nil {
+		return err
+	}
+	*r = v
+	return nil
+}
+
+// Validate checks that g is one of the Groesse constants.
+func (g Groesse) Validate() error { return checkEnum(g, groesseValues) }
+
+// MarshalJSON writes g as a JSON string after validating it.
+func (g Groesse) MarshalJSON() ([]byte, error) { return marshalEnum(g, groesseValues) }
+
+// UnmarshalJSON reads a JSON string and validates it; null is rejected.
+func (g *Groesse) UnmarshalJSON(b []byte) error {
+	v, err := unmarshalEnum(b, groesseValues)
+	if err != nil {
+		return err
+	}
+	*g = v
+	return nil
+}
+
+// Validate checks that r is one of the EinflussResolution constants.
+func (r EinflussResolution) Validate() error { return checkEnum(r, einflussResolutionValues) }
+
+// MarshalJSON writes r as a JSON string after validating it.
+func (r EinflussResolution) MarshalJSON() ([]byte, error) {
+	return marshalEnum(r, einflussResolutionValues)
+}
+
+// UnmarshalJSON reads a JSON string and validates it; null is rejected.
+func (r *EinflussResolution) UnmarshalJSON(b []byte) error {
+	v, err := unmarshalEnum(b, einflussResolutionValues)
 	if err != nil {
 		return err
 	}

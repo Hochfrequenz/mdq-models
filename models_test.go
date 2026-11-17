@@ -152,12 +152,14 @@ func TestProtoEnumsFixtureAgreesWithGoEnums(t *testing.T) {
 		"Herkunft":  {"fremd", "mqa"},
 		"Profiltyp": {"haushalt", "gewerbe", "industrie", "unbekannt"},
 		"Richtung":  {"bezug", "einspeisung"},
+		"Groesse":   {"temperatur", "globalstrahlung"},
 	}
 	validators := map[string]func(string) error{
 		"Status":    func(s string) error { return mdq.Status(s).Validate() },
 		"Herkunft":  func(s string) error { return mdq.Herkunft(s).Validate() },
 		"Profiltyp": func(s string) error { return mdq.Profiltyp(s).Validate() },
 		"Richtung":  func(s string) error { return mdq.Richtung(s).Validate() },
+		"Groesse":   func(s string) error { return mdq.Groesse(s).Validate() },
 	}
 	for name, e := range enums {
 		var got []string
@@ -169,6 +171,15 @@ func TestProtoEnumsFixtureAgreesWithGoEnums(t *testing.T) {
 		for _, bad := range []string{"", strings.ToUpper(got[0]), "gemessen"} {
 			assert.Error(t, validators[name](bad), "%s %q", name, bad)
 		}
+	}
+}
+
+func TestEinflussResolutionValidate(t *testing.T) {
+	for _, ok := range []string{"PT1H", "PT15M"} {
+		assert.NoError(t, mdq.EinflussResolution(ok).Validate(), ok)
+	}
+	for _, bad := range []string{"pt1h", "PT30M", "", "P1D"} {
+		assert.Error(t, mdq.EinflussResolution(bad).Validate(), "%q", bad)
 	}
 }
 

@@ -16,3 +16,6 @@ bezug
 einspeisung
 zaehlerstand
 messwert
+groesse
+temperatur
+globalstrahlung

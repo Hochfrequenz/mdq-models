@@ -289,6 +289,7 @@ func TestProtoEnumsMatchPinnedFileAndGoEnums(t *testing.T) {
 		"Herkunft":  func(s string) error { return mdq.Herkunft(s).Validate() },
 		"Profiltyp": func(s string) error { return mdq.Profiltyp(s).Validate() },
 		"Richtung":  func(s string) error { return mdq.Richtung(s).Validate() },
+		"Groesse":   func(s string) error { return mdq.Groesse(s).Validate() },
 	}
 	for name, p := range pinned {
 		// proto <-> pinned file, both directions: the maps must be equal.

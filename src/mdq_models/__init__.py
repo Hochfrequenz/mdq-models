@@ -14,12 +14,14 @@ failures are ``pydantic.ValidationError``.
 
 from mdq_models._base import check_json
 from mdq_models._version import version as __version__
-from mdq_models.enums import Herkunft, Profiltyp, Richtung, Status
+from mdq_models.enums import EinflussResolution, Groesse, Herkunft, Profiltyp, Richtung, Status
 from mdq_models.malo import herkunft_passt_zu_status, is_valid_malo_id, malo_check_digit
 from mdq_models.messwert import Messwert
 from mdq_models.zaehlerstand import Zaehlerstand
 
 __all__ = [
+    "EinflussResolution",
+    "Groesse",
     "Herkunft",
     "Messwert",
     "Profiltyp",

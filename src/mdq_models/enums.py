@@ -62,6 +62,24 @@ class Profiltyp(StrEnum):
     """Unknown."""
 
 
+class Groesse(StrEnum):
+    """Physical quantity of an Einflusswert. The unit is fixed per value; there is no unit field."""
+
+    TEMPERATUR = "temperatur"
+    """Air temperature at 2 m in degrees Celsius (mean or representative value of the period)."""
+    GLOBALSTRAHLUNG = "globalstrahlung"
+    """Global irradiance in W/m2 (mean irradiance over the period)."""
+
+
+class EinflussResolution(StrEnum):
+    """Time raster of an Einflusswert as an ISO 8601 duration."""
+
+    PT1H = "PT1H"
+    """One value per hour."""
+    PT15M = "PT15M"
+    """One value per quarter hour."""
+
+
 class Richtung(StrEnum):
     """Energy direction."""
 
