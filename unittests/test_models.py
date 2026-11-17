@@ -29,7 +29,7 @@ from mdq_models import (
 
 TESTDATA = Path(__file__).resolve().parent.parent / "testdata"
 ENCODING_FIXTURES = {"utf8_bom.json", "utf16_encoded.json", "invalid_utf8_bytes.json"}
-MODELS: dict[str, type[BaseModel]] = {"messwert": Messwert, "zaehlerstand": Zaehlerstand}
+MODELS: dict[str, type[BaseModel]] = {"messwert": Messwert, "zaehlerstand": Zaehlerstand, "einflusswert": Einflusswert}
 
 
 def _files(validity: str) -> list[Path]:

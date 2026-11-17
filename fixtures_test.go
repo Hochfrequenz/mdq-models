@@ -18,15 +18,19 @@ import (
 
 const fixtureDir = "testdata"
 
-var fixtureKinds = []string{"messwert", "zaehlerstand"}
+var fixtureKinds = []string{"messwert", "zaehlerstand", "einflusswert"}
 
 var messwertKeys = []string{"malo", "timestamp", "resolution", "value", "status", "herkunft", "profiltyp", "richtung"}
 var zaehlerstandKeys = []string{"malo", "timestamp", "value"}
+
+// referenceEinflusswertKeys is the test-side copy of the contract key set (independent of the package).
+var referenceEinflusswertKeys = []string{"malo", "timestamp", "resolution", "groesse", "value", "quelle"}
 
 var (
 	fixtureMaLoRe      = regexp.MustCompile(`^[1-9][0-9]{10}$`)
 	fixtureTimestampRe = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$`)
 	// plan 0.3: shortest canonical form, at most 12 integer digits, at most 6 decimal places (negative zero is checked separately).
+	fixtureQuelleRe  = regexp.MustCompile(`^[!-~]{1,64}$`)
 	fixtureDecimalRe = regexp.MustCompile(`^-?(0|[1-9][0-9]{0,11})(\.[0-9]{0,5}[1-9])?$`)
 )
 
@@ -35,14 +39,15 @@ var fixtureEnums = map[string][]string{
 	"herkunft":  {"fremd", "mqa"},
 	"profiltyp": {"haushalt", "gewerbe", "industrie", "unbekannt"},
 	"richtung":  {"bezug", "einspeisung"},
+	"groesse":   {"temperatur", "globalstrahlung"},
 }
 
 // fixturesReordered are valid fixtures that deliberately do not use the contract key order
 // (parsing accepts any order; the order matters only for output).
-var fixturesReordered = []string{"messwert/valid/key_order_reversed.json", "zaehlerstand/valid/key_order_reversed.json"}
+var fixturesReordered = []string{"messwert/valid/key_order_reversed.json", "zaehlerstand/valid/key_order_reversed.json", "einflusswert/valid/key_order_reversed.json"}
 
 // fixturesWithDuplicates are the only fixtures that repeat a key; duplicate keys are rejected on purpose.
-var fixturesWithDuplicates = []string{"messwert/invalid/duplicate_key.json", "zaehlerstand/invalid/duplicate_key.json"}
+var fixturesWithDuplicates = []string{"messwert/invalid/duplicate_key.json", "zaehlerstand/invalid/duplicate_key.json", "einflusswert/invalid/duplicate_key.json"}
 
 // fixturesNotJSON are the invalid fixtures about the text encoding: a byte order mark, UTF-16 and
 // invalid UTF-8 bytes. They are not (valid UTF-8) JSON by design, so the tests that decode fixtures
@@ -50,6 +55,7 @@ var fixturesWithDuplicates = []string{"messwert/invalid/duplicate_key.json", "za
 var fixturesNotJSON = []string{
 	"messwert/invalid/utf8_bom.json", "messwert/invalid/utf16_encoded.json", "messwert/invalid/invalid_utf8_bytes.json",
 	"zaehlerstand/invalid/utf8_bom.json", "zaehlerstand/invalid/utf16_encoded.json", "zaehlerstand/invalid/invalid_utf8_bytes.json",
+	"einflusswert/invalid/utf8_bom.json", "einflusswert/invalid/utf16_encoded.json", "einflusswert/invalid/invalid_utf8_bytes.json",
 }
 
 func fixtureRead(t *testing.T, parts ...string) []byte {
@@ -259,7 +265,7 @@ func fixtureErrors(kind string, doc any) []string {
 	if !ok {
 		return []string{"top level is not an object"}
 	}
-	wantKeys := map[string][]string{"messwert": messwertKeys, "zaehlerstand": zaehlerstandKeys}[kind]
+	wantKeys := map[string][]string{"messwert": messwertKeys, "zaehlerstand": zaehlerstandKeys, "einflusswert": referenceEinflusswertKeys}[kind]
 	if len(m) != len(wantKeys) {
 		return []string{"key set"}
 	}
@@ -272,10 +278,10 @@ func fixtureErrors(kind string, doc any) []string {
 	if malo, ok := m["malo"].(string); !ok || !fixtureIsValidMaLo(malo) {
 		errs = append(errs, "malo")
 	}
-	errs = append(errs, fixtureTimestampErrors(kind, m["timestamp"])...)
+	errs = append(errs, fixtureTimestampErrors(kind, m["timestamp"], m["resolution"])...)
 	switch v := m["value"].(type) {
 	case nil:
-		if kind == "zaehlerstand" || m["status"] != "fehlend" {
+		if kind == "zaehlerstand" || (kind == "messwert" && m["status"] != "fehlend") { // null is valid for einflusswert
 			errs = append(errs, "value is null")
 		}
 	case string:
@@ -290,10 +296,13 @@ func fixtureErrors(kind string, doc any) []string {
 	if kind == "messwert" {
 		errs = append(errs, fixtureMesswertErrors(m)...)
 	}
+	if kind == "einflusswert" {
+		errs = append(errs, fixtureEinflusswertErrors(m)...)
+	}
 	return errs
 }
 
-func fixtureTimestampErrors(kind string, v any) []string {
+func fixtureTimestampErrors(kind string, v any, resolution ...any) []string {
 	ts, ok := v.(string)
 	if !ok || !fixtureTimestampRe.MatchString(ts) {
 		return []string{"timestamp shape"}
@@ -308,6 +317,30 @@ func fixtureTimestampErrors(kind string, v any) []string {
 	}
 	if kind == "messwert" && (parsed.Minute()%15 != 0 || parsed.Second() != 0) {
 		errs = append(errs, "timestamp is off the 15-minute raster")
+	}
+	if kind == "einflusswert" {
+		// PT1H: full hour; otherwise (PT15M or a broken resolution, which is reported separately): 15-minute raster
+		if resolution[0] == "PT1H" {
+			if parsed.Minute() != 0 || parsed.Second() != 0 {
+				errs = append(errs, "timestamp is off the hourly raster")
+			}
+		} else if parsed.Minute()%15 != 0 || parsed.Second() != 0 {
+			errs = append(errs, "timestamp is off the 15-minute raster")
+		}
+	}
+	return errs
+}
+
+func fixtureEinflusswertErrors(m map[string]any) []string {
+	var errs []string
+	if m["resolution"] != "PT1H" && m["resolution"] != "PT15M" {
+		errs = append(errs, "resolution")
+	}
+	if s, ok := m["groesse"].(string); !ok || !inList(fixtureEnums["groesse"], s) {
+		errs = append(errs, "groesse")
+	}
+	if q, ok := m["quelle"].(string); !ok || !fixtureQuelleRe.MatchString(q) {
+		errs = append(errs, "quelle")
 	}
 	return errs
 }
@@ -413,7 +446,7 @@ func TestInvalidFixturesAndReasonsMatch(t *testing.T) {
 }
 
 func TestValidFixturesFollowTheContractShape(t *testing.T) {
-	wantKeys := map[string][]string{"messwert": messwertKeys, "zaehlerstand": zaehlerstandKeys}
+	wantKeys := map[string][]string{"messwert": messwertKeys, "zaehlerstand": zaehlerstandKeys, "einflusswert": referenceEinflusswertKeys}
 	for _, name := range fixtureFiles(t, "valid") {
 		t.Run(name, func(t *testing.T) {
 			data := fixtureRead(t, name)

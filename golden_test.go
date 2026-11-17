@@ -67,7 +67,7 @@ func TestGoldenFileFormat(t *testing.T) {
 	for _, l := range lines {
 		name, doc, ok := strings.Cut(l, "\t")
 		require.True(t, ok, l)
-		assert.Regexp(t, `^(messwert|zaehlerstand)/[a-z0-9_]+\.json$`, name)
+		assert.Regexp(t, `^(einflusswert|messwert|zaehlerstand)/[a-z0-9_]+\.json$`, name)
 		var compact bytes.Buffer
 		require.NoError(t, json.Compact(&compact, []byte(doc)))
 		assert.Equal(t, compact.String(), doc, "compact JSON without spaces")
